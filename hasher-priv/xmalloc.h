@@ -1,5 +1,6 @@
 /*
- * The dynamic memory allocation interface.
+ * The dynamic memory allocation with error checking interface
+ * for the hasher-priv project.
  *
  * Copyright (c) 2001-2021 The strace developers.
  * All rights reserved.

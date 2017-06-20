@@ -1,35 +1,78 @@
-
-Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
+Here is the control flow of unprivileged hasher-priv client (euid=caller_uid):
+==============================================================================
 + sanitize file descriptors
   + set safe umask
   + ensure 0,1,2 are valid file descriptors
   + close all the rest
 + parse command line arguments
-  + check for non-zero argument list
-  + parse -h, --help and -number options
-    + caller_num initialized here
-  + parse arguments, abort if wrong
-    + chroot_path is initialized here
-    + valid arguments are:
-      getconf
-      killuid
-      getugid1
-      chrootuid1 <chroot path> <program> [program args]
-      getugid2
-      chrootuid2 <chroot path> <program> [program args]
-+ initialize data related to caller
-  + caller_uid initialized here from getuid()
-    + caller_uid must be valid uid
-  + caller_gid initialized here from getgid()
-    + caller_gid must be valid gid
-  + caller_user initialized here from getpwnam(LOGNAME)->pw_name or
-    getpwuid(caller_uid)->pw_name
++ try to connect to the session server by SOCKETDIR/caller_uid:caller_num socket
++ if failed,
+  + connect to the common server by SOCKETDIR/daemon socket
+  + wait for the creation of a session server
+  + close socket
+  + connect to the session server by SOCKETDIR/caller_uid:caller_num socket
++ send a command to start a new job
+  + receive a result code from the server
++ send current stdin, stdout, and stderr to the server
+  + receive a result code from the server
++ send the job arguments if any
+  + receive a result code from the server
++ if the job is a chrootuid, send environment variables
+  + receive a result code from the server
++ send a command to run the job
+  + receive a job result code from the server
+
+Here is the control flow of the privileged hasher-privd server (euid=root):
+===========================================================================
++ sanitize file descriptors
+  + set safe umask
+  + ensure 0,1,2 are valid file descriptors
+  + close all the rest
++ parse command line arguments
+  + handle -h and --help options
++ load the server configuration
+  + read configuration from /etc/hasher-priv/daemon.conf
+  + change the current working directory to "/"
++ check the pidfile, abort if a server is already running
++ if requested to become a daemon, daemonize
+  + change the current working directory to "/" again
+  + redirect stdin, stdout, and stderr to /dev/null
++ initialize the logger
++ write the pidfile
++ setup a listening socket at SOCKETDIR/daemon
++ create a file descriptor for accepting certain signals
+  + block these signals
++ create a file descriptor for polling
+  + prepare for polling descriptors
++ ignore SIGPIPE
++ enter the polling loop
+  + handle all received signals if any
+    + certain signals terminate the polling loop
+  + handle a new connection if any
+    + accept a new connection
+    + set the receiving timeout on the accepted socket
+    + obtain a request to open a session
+    + get connection credentials
+      + check that the uid and the gid are valid
+    + notify the client if the session server is already running
+    + otherwise fork off a session server for the caller
+      + the new session server initializes itself
+        and notifies the caller when it's ready to handle connections
+    + close the caller connection
++ remove pidfile
++ exit process
+
+Here is the control flow of the privileged session server (euid=root):
+=======================================================================
++ initialize the data related to the caller
+  + caller_uid and caller_gid are initialized by the data obtained
+    from the socket credentials
+    + caller_uid and caller_gid must be valid
+  + caller_user is initialized from getpwuid(caller_uid)->pw_name
     + must be true: caller_uid == pw->pw_uid
     + must be true: caller_gid == pw->pw_gid
-  + caller_home initialized here
+  + caller_home is initialized from getpwuid(caller_uid)->pw_dir
     + caller_user's home directory must exist
-+ read work limit hints from environment variables
-+ drop all environment variables
 + load configuration
   + safe chdir to /etc/hasher-priv
   + safe load "system" file
@@ -40,6 +83,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
       prefix
       umask
       nice
+      allow_ttydev
       allowed_devices
       allowed_mountpoints
       rlimit_(hard|soft)_*
@@ -53,87 +97,144 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
       + change_user1 and change_user2 should be initialized here
   + change_uid1 and change_gid1 initialized from change_user1
   + change_uid2 and change_gid2 initialized from change_user2
-+ execute the chosen job
-  + getconf: print the name of the last loaded config file
-  + getugid1: print change_uid1:change_gid1 pair
-  + getugid2: print change_uid2:change_gid2 pair
-  + killuid
-    + check for valid uids specified
-    + clear the dumpable flag explicitly
-    + setuid to specified uid pair
-    + kill (-1, SIGKILL)
-    + purge all SYSV IPC objects belonging to specified uid pair
-  + chrootuid1/chrootuid2
-    + check for valid uid specified
-    + setup mounts and devices
-      + unshare mount namespace
++ create a listening socket at SOCKETDIR/caller_uid:caller_num
++ create a file descriptor for accepting certain signals
+  + block these signals
++ create a file descriptor for polling
+  + prepare for polling descriptors
++ notify the client that the session server is ready
++ enter the polling loop
+  + terminate the polling loop in case of timeout
+  + terminate the polling loop in case of an event in the parent pipe
+  + handle all received signals if any
+    + certain signals terminate the polling loop
+  + handle a new connection if any
+    + accept a new connection
+    + set the receiving timeout on the accepted socket
+    + check connection credentials
+    + handle the job request
+      + reset the timeout counter if the job request is valid
++ exit process
+
+Here is the control flow of the privileged job handler (euid=root):
+====================================================================
++ enter the command loop
+  + receive the job command header
+    + reject repeated commands
+    + supported commands: type, fds, arguments, environ, run
+  + receive the data according to the job command header
+    + validate the number of received arguments according to the job type
+  + if the command is to run,
+    + check that arguments were received if the job type requires arguments
+    + run the job and terminate the job command loop
++ exit process
+
+Here is the control flow of the privileged job runner (euid=root):
+==================================================================
++ fork off a process to run the job
+  + parent terminates the job command loop and exits
++ unblock all signals
++ fork off a child process
++ in the parent,
+  + wait for the completion of the child process
+  + report its exit status to the client
+  + exit process
++ in the child,
+  + replace stdin, stdout and stderr with those that were received
+  + re-initialize the logger
+  + check the job arguments
+    + chroot_path is initialized here
+  + sanitize file descriptors
+    + set safe umask
+    + ensure 0,1,2 are valid file descriptors
+    + close all the rest
+  + drop all environment variables
+  + read work limit hints from the client's environment variables
+  + execute the chosen job type
+    + getconf: print the name of the last loaded config file
+    + getugid1: print change_uid1:change_gid1 pair
+    + getugid2: print change_uid2:change_gid2 pair
+    + killuid
+      + check for valid uids specified
+      + clear the dumpable flag explicitly
+      + setuid to the specified uid pair
+      + kill (-1, SIGKILL)
+      + purge all SYSV IPC objects belonging to the specified uid pair
+    + chrootuid1/chrootuid2
+      + fork to kill the processes that were left from the previous chrootuid call
+        + in the parent:
+          + wait for the exit status
+        + in the child:
+          + killuid
+      + setup mounts and devices
+        + unshare mount namespace
+        + safe chdir to chroot_path
+        + safe chdir to dev
+        + mount dev
+        + create devices available to all users: null, zero, full, random, urandom
+        + if makedev_console environment variable is true,
+          create devices available to root only: console, tty0, fb0
+        + if /dev/pts is going to be mounted, create devices: tty, ptmx
+        + mount /dev/shm
+        + mount all mountpoints specified by requested_mountpoints environment variable
       + safe chdir to chroot_path
-      + safe chdir to dev
-      + mount dev
-      + create devices available to all users: null, zero, full, random, urandom
-      + if makedev_console environment variable is true,
-        create devices available to root only: console, tty0, fb0
-      + mount /dev/shm
-      + mount all mountpoints specified by requested_mountpoints environment variable
-      + if /dev/pts was mounted, create devices: tty, ptmx
-    + safe chdir to chroot_path
-    + sanitize file descriptors again
-    + if use_pty is disabled, create pipe to handle child's stdout and stderr
-    + if X11 forwarding is requested, create socketpair and
-      open /tmp/.X11-unix directory readonly for later use with fchdir()
-    + unless share_ipc is enabled, isolate System V IPC namespace
-    + unless share_uts is enabled, unshare UTS namespace
-    + if X11 forwarding to a tcp address was not requested,
-      unless share_network is enabled, unshare network
-    + clear supplementary group access list
-    + create pty:
-      + temporarily switch to called_uid:caller_gid
-      + open /dev/ptmx
-      + fetch pts number
-      + unlock pts pair
-      + open pts slave
-      + switch uid:gid back
-    + chroot to "."
-    + create another pty if possible:
-      + temporarily switch to called_uid:caller_gid
-      + safely chdir to "dev"
-      + if "pts/ptmx" is available with right permissions:
-        + replace "ptmx" with a symlink to "pts/ptmx"
-        + open "ptmx"
-        + fetch pts number
-        + unlock pts pair
-        + open pts slave
-      + chdir back to "/"
-      + switch uid:gid back
-      + if another pty was crated, close pts pair that was opened earlier
-    + set rlimits
-    + set close-on-exec flag on all non-standard descriptors
-    + fork
-      + in parent:
-        + clear the dumpable flag explicitly
-        + setgid/setuid to caller user
-        + install CHLD signal handler
-        + unblock master pty and pipe descriptors
-        + if use_pty is enabled, initialize tty and install WINCH signal handler
-        + listen to "/dev/log"
-        + while work limits are not exceeded, handle child input/output
-        + close master pty descriptor, thus sending HUP to child session
-        + wait for child process termination
-        + remove CHLD signal handler
-        + return child proccess exit code
-      + in child:
-        + if X11 forwarding to a tcp address was requested,
-          unless share_network is enabled, unshare network
-        + clear the dumpable flag explicitly
-        + setgid/setuid to specified user
-        + setsid
-        + change controlling terminal to pty
-        + redirect stdin if required, either to null or to pty
-        + redirect stdout and stderr either to pipe or to pty
-        + set nice
-        + if X11 forwarding is requested,
-          + add X11 auth entry using xauth utility
-          + create and bind unix socket for X11 forwarding
-          + send listening descriptor and fake auth data to the parent
-        + set umask
-        + execute specified program
+      + sanitize file descriptors again
+      + if use_pty is disabled, create a pipe to handle child's stdout and stderr
+      + if X11 forwarding is requested, create a socketpair and
+        open /tmp/.X11-unix directory readonly for later use with fchdir()
+      + unless share_ipc is enabled, isolate System V IPC namespace
+      + unless share_uts is enabled, unshare UTS namespace
+      + unless share_network is enabled,
+        if X11 forwarding to a tcp address was not requested, unshare the network
+      + clear the supplementary group access list
+      + create a pty:
+        + temporarily switch to called_uid:caller_gid
+        + open /dev/ptmx
+        + fetch the pts number
+        + unlock the pts pair
+        + open the pts slave
+        + switch uid:gid back
+      + chroot to "."
+      + create another pty if possible:
+        + temporarily switch to called_uid:caller_gid
+        + safely chdir to "dev"
+        + if "pts/ptmx" is available with the right permissions:
+          + replace "ptmx" with a symlink to "pts/ptmx"
+          + open "ptmx"
+          + fetch the pts number
+          + unlock the pts pair
+          + open the pts slave
+        + chdir back to "/"
+        + switch uid:gid back
+        + if another pty was created, close the pts pair that was opened earlier
+      + set rlimits
+      + set close-on-exec flag on all non-standard descriptors
+      + fork
+        + in the parent:
+          + clear the dumpable flag explicitly
+          + setgid/setuid to the caller user
+          + install the CHLD signal handler
+          + unblock the master pty and pipe descriptors
+          + if use_pty is enabled, initialize the tty and install WINCH signal handler
+          + listen to "/dev/log"
+          + while the work limits are not exceeded, handle the child's input/output
+          + close the master pty descriptor, thus sending HUP to the child session
+          + wait for the child process termination
+          + remove the CHLD signal handler
+          + return the child process exit code
+        + in the child:
+          + unless share_network is enabled,
+            if X11 forwarding to a tcp address was requested, unshare the network
+          + clear the dumpable flag explicitly
+          + setgid/setuid to the specified user
+          + setsid
+          + change the controlling terminal to the pty
+          + redirect stdin if required, either to an empty pipe or to the pty
+          + redirect stdout and stderr either to the pipe or to the pty
+          + set nice
+          + if X11 forwarding is requested,
+            + add an X11 auth entry using xauth utility
+            + create and bind a unix socket for X11 forwarding
+            + send the listening descriptor and the fake auth data to the parent
+          + set umask
+          + execute the specified program

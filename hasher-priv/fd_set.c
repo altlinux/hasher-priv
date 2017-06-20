@@ -1,5 +1,5 @@
 /*
- * fd_set functions for the hasher-priv project.
+ * fd_set functions for the hasher-privd server program.
  *
  * Copyright (C) 2008-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

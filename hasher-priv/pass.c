@@ -141,7 +141,7 @@ fd_recv(int ctl, int *fds, unsigned int n_fds, char *data, size_t data_len)
 	size_t recv_len = cmsg->cmsg_len - CMSG_LEN(0);
 	if (recv_len != clen) {
 		error_msg("SCM_RIGHTS: expected size %lu, got %lu",
-			  clen, recv_len);
+			  (unsigned long) clen, (unsigned long) recv_len);
 		return -1;
 	}
 

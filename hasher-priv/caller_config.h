@@ -1,5 +1,5 @@
 /*
- * The caller configuration interface for the hasher-priv project.
+ * The caller configuration interface for the hasher-privd server program.
  *
  * Copyright (C) 2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -11,6 +11,9 @@
 # define HASHER_CALLER_CONFIG_H
 
 # include <sys/types.h>
+
+# define MIN_CHANGE_UID	34
+# define MIN_CHANGE_GID	34
 
 typedef struct
 {
@@ -28,7 +31,7 @@ typedef struct {
 } str_list_t;
 
 void configure_caller(void);
-void parse_env(void);
+void parse_env(char **env);
 
 extern const char *term;
 

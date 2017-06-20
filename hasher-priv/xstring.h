@@ -1,5 +1,5 @@
 /*
- * The xsprintf* string manipulation interface.
+ * The xsprintf* string manipulation interface for the hasher-priv project.
  *
  * Copyright (c) 2018-2021 Eugene Syromyatnikov <evgsyr@gmail.com>
  * All rights reserved.

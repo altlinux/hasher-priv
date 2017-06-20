@@ -1,5 +1,5 @@
 /*
- * waitpid_retry function for the hasher-priv project.
+ * waitpid_retry function for the hasher-privd server program.
  *
  * Copyright (C) 2022  Arseny Maslennikov <arseny@altlinux.org>
  * All rights reserved.

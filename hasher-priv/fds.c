@@ -153,6 +153,19 @@ cloexec_fds(void)
 	errno = 0;
 }
 
+void
+move_fd(int *oldfd, int newfd)
+{
+	if (*oldfd < 0 || *oldfd == newfd)
+		return;
+
+	if (dup2(*oldfd, newfd) != newfd)
+		perror_msg_and_die("dup2");
+
+	if (xclose(oldfd))
+		perror_msg_and_die("close");
+}
+
 int
 xclose(int *fd)
 {

@@ -43,10 +43,13 @@ groupadd -r -f hashman
 %attr(750,root,hashman) %dir %configdir/user.d
 %attr(640,root,hashman) %config(noreplace) %configdir/fstab
 %attr(640,root,hashman) %config(noreplace) %configdir/system
+%attr(640,root,hashman) %config(noreplace) %configdir/daemon.conf
 # helpers
 %attr(750,root,hashman) %dir %helperdir
-%attr(6710,root,hashman) %helperdir/%name
+%attr(710,root,hashman) %helperdir/%name
 %attr(755,root,root) %helperdir/*.sh
+# daemon
+%_sbindir/hasher-privd
 
 %doc DESIGN
 

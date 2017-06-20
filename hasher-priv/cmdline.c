@@ -1,5 +1,5 @@
 /*
- * The command line parser for the hasher-priv program.
+ * The command line parser for the hasher-priv client program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -40,8 +40,7 @@ ATTRIBUTE_NORETURN
 static void
 print_help(void)
 {
-	printf("Privileged helper for the hasher project.\n"
-	       "\nUsage: %s [options] <args>\n"
+	printf("\nUsage: %s [options] <args>\n"
 	       "\nValid options are:\n"
 	       "  -<number>:\n"
 	       "       subconfig identifier;\n"
@@ -71,7 +70,10 @@ static void
 print_version(void)
 {
 	printf("hasher-priv version %s\n"
-	       "\nCopyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "Copyright (c) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "Copyright (C) 2019  Alexey Gladkov <legion@altlinux.org>\n"
+	       "Copyright (C) 2022  Arseny Maslennikov <arseny@altlinux.org>\n"
+	       "Copyright (C) 2022  Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>\n"
 	       "\nAll rights reserved.\n"
 	       "\nThis is free software; see the source for copying conditions.\n"
 	       "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
@@ -80,7 +82,7 @@ print_version(void)
 	exit(EXIT_SUCCESS);
 }
 
-const char *chroot_path;
+unsigned int caller_num;
 
 static unsigned
 get_caller_num(const char *str)
@@ -149,8 +151,7 @@ parse_cmdline(int argc, const char *argv[], const char ***job_args)
 	{
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		*job_args = av + 2;
+		*job_args = av + 1;
 		return JOB_CHROOTUID1;
 	} else if (!strcmp("getugid2", av[0]))
 	{
@@ -161,8 +162,7 @@ parse_cmdline(int argc, const char *argv[], const char ***job_args)
 	{
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		*job_args = av + 2;
+		*job_args = av + 1;
 		return JOB_CHROOTUID2;
 	} else
 		show_usage("%s: invalid argument", av[0]);

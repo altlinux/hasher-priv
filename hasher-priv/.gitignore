@@ -6,6 +6,7 @@ getugid2.sh
 hasher-priv
 hasher-priv.8
 hasher-priv.conf.5
+hasher-privd
 hasher-useradd
 hasher-useradd.8
 *.[do]

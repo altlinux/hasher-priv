@@ -1,5 +1,5 @@
 /*
- * The caller data initialization module for the hasher-priv project.
+ * The caller data initialization module for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -20,8 +20,6 @@
 #include <limits.h>
 #include <pwd.h>
 
-#include "priv.h"
-
 const char *caller_user;
 const char *caller_home;
 uid_t caller_uid;
@@ -35,12 +33,7 @@ void
 init_caller_data(uid_t uid, gid_t gid)
 {
 	caller_uid = uid;
-	if (caller_uid < MIN_CHANGE_UID)
-		error_msg_and_die("caller has invalid uid: %u", caller_uid);
-
 	caller_gid = gid;
-	if (caller_gid < MIN_CHANGE_GID)
-		error_msg_and_die("caller has invalid gid: %u", caller_gid);
 
 	struct passwd *pw = getpwuid(caller_uid);
 

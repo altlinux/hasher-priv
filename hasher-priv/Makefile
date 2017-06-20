@@ -12,7 +12,7 @@ VERSION = $(shell sed '/^Version: */!d;s///;q' hasher-priv.spec)
 HELPERS = getconf.sh getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
-TARGETS = $(PROJECT) hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
+TARGETS = $(PROJECT) hasher-privd hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
 
 have-cc-function = $(shell echo 'extern void $(1)(void); int main () { $(1)(); return 0; }' |$(CC) -o /dev/null -xc - > /dev/null 2>&1 && echo "-D$(2)")
 
@@ -24,6 +24,8 @@ man5dir = $(mandir)/man5
 man8dir = $(mandir)/man8
 configdir = $(sysconfdir)/$(PROJECT)
 helperdir = $(libexecdir)/$(PROJECT)
+runstatedir = /run
+socketdir = $(runstatedir)/hasher-priv
 DESTDIR =
 
 MKDIR_P = mkdir -p
@@ -47,32 +49,50 @@ WARNINGS = -Wall -W -Werror \
 	   #
 CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 	$(call have-cc-function,close_range,HAVE_CLOSE_RANGE) \
-	$(LFS_CFLAGS) -DPROJECT_VERSION=\"$(VERSION)\"
+	$(LFS_CFLAGS) -DPROJECT_VERSION=\"$(VERSION)\" \
+	-DSOCKETDIR=\"$(socketdir)\" -DPROJECT=\"$(PROJECT)\"
 CFLAGS = -pipe -O2
 override CFLAGS += $(WARNINGS)
 LDLIBS =
 
-SRC =	\
+SRC_client =		\
+	cmdline.c	\
+	die.c		\
+	error_prints.c	\
+	fds.c		\
+	hasher-priv.c	\
+	io_loop.c	\
+	pass.c		\
+	sockets.c	\
+	xmalloc.c	\
+	#
+OBJ_client = $(SRC_client:.c=.o)
+
+SRC_server =		\
 	caller.c	\
 	caller_config.c	\
+	caller_job.c	\
+	caller_runner.c	\
+	caller_server.c	\
 	chdir.c		\
 	chdiruid.c	\
 	chid.c		\
 	child.c		\
 	chrootuid.c	\
-	cmdline.c	\
 	die.c		\
+	epoll.c		\
 	error_prints.c	\
 	fd_set.c	\
 	fds.c		\
 	file_config.c	\
 	getconf.c	\
 	getugid.c	\
-	hasher-priv.c	\
+	hasher-privd.c	\
 	io_log.c	\
 	io_loop.c	\
 	io_x11.c	\
 	ipc.c		\
+	job2str.c	\
 	killuid.c	\
 	makedev.c	\
 	mount.c		\
@@ -81,9 +101,13 @@ SRC =	\
 	opt_parse.c	\
 	parent.c	\
 	pass.c		\
+	pidfile.c	\
 	process.c	\
 	pty.c		\
+	server_comm.c	\
+	server_config.c	\
 	signal.c	\
+	sockets.c	\
 	spawn_killuid.c	\
 	tty.c		\
 	unblock_fd.c	\
@@ -92,24 +116,30 @@ SRC =	\
 	x11.c		\
 	xmalloc.c	\
 	#
-OBJ = $(SRC:.c=.o)
-DEP = $(SRC:.c=.d)
+OBJ_server = $(SRC_server:.c=.o)
+
+DEP = $(SRC_client:.c=.d) $(SRC_server:.c=.d)
 
 .PHONY:	all install clean indent
 
 all: $(TARGETS)
 
-$(PROJECT): $(OBJ)
+$(PROJECT): $(OBJ_client)
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+hasher-privd: $(OBJ_server)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 install: all
 	$(MKDIR_P) -m710 $(DESTDIR)$(configdir)/user.d
 	$(INSTALL) -p -m640 fstab $(DESTDIR)$(configdir)/fstab
 	$(INSTALL) -p -m640 system.conf $(DESTDIR)$(configdir)/system
+	$(INSTALL) -p -m640 daemon.conf $(DESTDIR)$(configdir)/daemon.conf
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(HELPERS) $(DESTDIR)$(helperdir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
+	$(INSTALL) -p -m755 hasher-privd $(DESTDIR)$(sbindir)/
 	$(INSTALL) -p -m755 hasher-useradd $(DESTDIR)$(sbindir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(man5dir)
 	$(INSTALL) -p -m644 $(MAN5PAGES) $(DESTDIR)$(man5dir)/
@@ -117,7 +147,7 @@ install: all
 	$(INSTALL) -p -m644 $(MAN8PAGES) $(DESTDIR)$(man8dir)/
 
 clean:
-	$(RM) $(TARGETS) $(DEP) $(OBJ) core *~
+	$(RM) $(TARGETS) $(DEP) $(OBJ_client) $(OBJ_server) core *~
 
 indent:
 	indent *.h *.c

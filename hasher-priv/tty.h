@@ -1,5 +1,5 @@
 /*
- * The chrootuid tty interface for the hasher-priv project.
+ * The chrootuid tty interface for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

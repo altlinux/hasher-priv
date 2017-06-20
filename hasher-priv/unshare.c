@@ -1,5 +1,5 @@
 /*
- * The unshare(2) helpers for the hasher-priv project.
+ * The unshare(2) helpers for the hasher-privd server program.
  *
  * Copyright (C) 2011-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

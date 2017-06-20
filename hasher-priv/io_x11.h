@@ -1,5 +1,5 @@
 /*
- * The chrootuid parent X11 I/O interface for the hasher-priv project.
+ * The chrootuid parent X11 I/O interface for the hasher-privd server program.
  *
  * Copyright (C) 2005-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

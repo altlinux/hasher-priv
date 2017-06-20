@@ -1,5 +1,5 @@
 /*
- * The command line parser interface for the hasher-priv program.
+ * The command line parser interface for the hasher-priv client program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -10,7 +10,9 @@
 #ifndef HASHER_CMDLINE_H
 # define HASHER_CMDLINE_H
 
-# include "priv.h"
+# include "communication.h"
+
+extern unsigned caller_num;
 
 job_enum_t parse_cmdline(int ac, const char *av[], const char ***job_args);
 

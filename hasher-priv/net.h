@@ -1,5 +1,5 @@
 /*
- * The network setup interface for the hasher-priv project.
+ * The network setup interface for the hasher-privd server program.
  *
  * Copyright (C) 2010  Kirill A. Shutemov <kirill@shutemov.name>
  * Copyright (C) 2011-2022  Dmitry V. Levin <ldv@altlinux.org>

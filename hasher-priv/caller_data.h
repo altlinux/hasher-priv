@@ -1,5 +1,5 @@
 /*
- * The caller data interface for the hasher-priv project.
+ * The caller data interface for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -18,5 +18,6 @@ extern const char *caller_user;
 extern const char *caller_home;
 extern uid_t caller_uid;
 extern gid_t caller_gid;
+extern unsigned int caller_num;
 
 #endif /* !HASHER_CALLER_DATA_H */

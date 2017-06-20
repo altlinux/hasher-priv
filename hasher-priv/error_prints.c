@@ -1,5 +1,5 @@
 /*
- * The error printing module.
+ * The error printing module for the hasher-priv project.
  *
  * Copyright (c) 1999-2022 The strace developers.
  * All rights reserved.

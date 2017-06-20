@@ -1,5 +1,5 @@
 /*
- * The killuid actions for the hasher-priv project.
+ * The killuid actions for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -18,8 +18,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/prctl.h>
-
-#include "priv.h"
 
 int
 do_killuid(void)

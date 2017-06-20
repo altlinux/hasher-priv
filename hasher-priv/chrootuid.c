@@ -1,5 +1,5 @@
 /*
- * The chrootuid actions for the hasher-priv project.
+ * The chrootuid actions for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -76,9 +76,6 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 	int     pipe_err[2] = { -1, -1 };
 	int     ctl[2] = { -1, -1 };
 	pid_t   pid;
-
-	if (uid < MIN_CHANGE_UID || uid == getuid())
-		error_msg_and_die("invalid uid: %u", uid);
 
 	spawn_killuid();
 

@@ -6,18 +6,7 @@
 .\" SPDX-License-Identifier: GPL-2.0-or-later
 
 [NAME]
-\fBhasher-priv\fR \- privileged helper for the hasher project
-
-[FILES]
-.TP
-.I /etc/hasher\-priv/system
-systemwide config file
-.TP
-\fI/etc/hasher\-priv/user.d/\fBUSER\fR
-per-user config files
-.TP
-\fI/etc/hasher\-priv/user.d/\fBUSER\fI:\fBNUMBER\fR
-per-user per-number subconfig files
+\fBhasher-priv\fR \- unprivileged client for the hasher-privd service daemon
 
 [ENVIRONMENT]
 The following environment variables are processed by
@@ -57,10 +46,10 @@ config parameter is also set, then minimal value will be used.
 .B use_pty
 This boolean specifies whether stdin, stdout and stderr of child process
 will be redirected to controlling pseudoterminal created by
-.BR hasher\-priv.
+.BR hasher\-privd.
 By default, stdin remains unchanged unless it references to terminal
 device, and stdout with stderr are redirected to pipe created by
-.BR hasher\-priv.
+.BR hasher\-privd.
 .TP
 .B share_ipc
 This boolean specifies whether IPC namespace inside chroot should be shared
@@ -147,7 +136,7 @@ is mounted, this operation also creates terminal device files:
 .PP
 All risky operation modes are not enabled by default.  They could be
 explicitly enabled in
-.B hasher\-priv
+.B hasher\-privd
 configuration.
 
 [SEE ALSO]

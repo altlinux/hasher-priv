@@ -1,5 +1,5 @@
 /*
- * The chrootuid parent handler for the hasher-priv project.
+ * The chrootuid parent handler for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

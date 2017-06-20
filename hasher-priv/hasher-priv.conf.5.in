@@ -1,4 +1,4 @@
-.\" Documentation for the hasher-priv configuration.
+.\" Documentation for the hasher-privd service daemon configuration.
 .\"
 .\" Copyright (C) 2004-2022  Dmitry V. Levin <ldv@altlinux.org>
 .\" All rights reserved.
@@ -7,23 +7,23 @@
 .\"
 .TH "HASHER-PRIV configuration" "5" "January 2005" "hasher-priv version @VERSION@" "ALT Linux"
 .SH NAME
-/etc/hasher\-priv/ \- configuration for the hasher\-priv program
+/etc/hasher\-priv/ \- configuration for the hasher\-privd service daemon
 .SH DESCRIPTION
 /etc/hasher\-priv/ is used to control various aspects of
-.BR hasher\-priv (8)
+.BR hasher\-privd (8)
 behaviour.
 .PP
 .BR hasher\-priv (8)
-first loads systemwide config file
+first loads systemwide configuration file
 .IR /etc/hasher\-priv/system ,
-then it loads per-user config file
+then it loads per-user configuration file
 \fI/etc/hasher\-priv/user.d/\fBUSER\fR,
 and finally, if subconfig identifier
 .B NUMBER
 is specified, it loads per-user per-number subconfig file
 \fI/etc/hasher\-priv/user.d/\fBUSER\fI:\fBNUMBER\fR.
 .SH FORMAT
-The format of each config file is very simple.  Each line is either
+The format of each configuration file is very simple.  Each line is either
 a comment or a directive.  Comment lines start with a # character and
 are ignored.  A directive line has the format:
 
@@ -137,7 +137,7 @@ Default: (none)
 .B prefix
 This option specifies colon-separated list of prefixes allowed for build chroot.
 It affects all
-.BR hasher\-priv (8)
+.BR hasher\-privd (8)
 modes which accept chroot parameter.
 
 Hardcoded default: (none)
@@ -163,11 +163,14 @@ environment variable.
 Default: (none)
 .SH FILES
 .TP
+.I /etc/hasher\-priv/daemon.conf
+service daemon configuration file
+.TP
 .I /etc/hasher\-priv/system
-systemwide config file
+systemwide hasher\-priv configuration file
 .TP
 \fI/etc/hasher\-priv/user.d/\fBUSER\fR
-per-user config files
+per-user hasher\-priv configuration files
 .TP
 \fI/etc/hasher\-priv/user.d/\fBUSER\fI:\fBNUMBER\fR
 per-user per-number subconfig files
@@ -178,6 +181,14 @@ Report bugs to http://bugzilla.altlinux.org/
 .SH COPYRIGHT
 Copyright \(co 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
 .br
+Copyright \(co 2019  Alexey Gladkov <legion@altlinux.org>
+.br
+Copyright \(co 2022  Arseny Maslennikov <arseny@altlinux.org>
+.br
+Copyright \(co 2022  Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
+.br
+All rights reserved.
+.PP
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH "SEE ALSO"

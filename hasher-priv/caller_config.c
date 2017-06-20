@@ -1,5 +1,5 @@
 /*
- * The caller configuration module for the hasher-priv project.
+ * The caller configuration module for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -17,6 +17,7 @@
 #include "file_config.h"
 #include "opt_parse.h"
 #include "x11.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,9 +25,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <pwd.h>
-
-#include "priv.h"
-#include "xmalloc.h"
 
 const char *caller_config_file_name;
 const char *const *chroot_prefix_list;
@@ -447,9 +445,15 @@ configure_caller(void)
 }
 
 void
-parse_env(void)
+parse_env(char **env)
 {
+	if (!env)
+		return;
+
+	char **const saved_environ = environ;
 	const char *e;
+
+	environ = env;
 
 	if ((e = getenv("wlimit_time_elapsed")) && *e)
 		modify_wlim(&wlimit.time_elapsed, e, "wlimit_time_elapsed",
@@ -507,4 +511,6 @@ parse_env(void)
 
 	if ((e = getenv("requested_mountpoints")))
 		parse_str_list(e, &requested_mountpoints);
+
+	environ = saved_environ;
 }

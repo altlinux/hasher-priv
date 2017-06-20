@@ -1,5 +1,5 @@
 /*
- * The pty opener interface for the hasher-priv project.
+ * The pty opener interface for the hasher-privd server program.
  *
  * Copyright (C) 2016-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

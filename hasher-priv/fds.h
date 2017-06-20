@@ -10,6 +10,7 @@
 #ifndef HASHER_FDS_H
 # define HASHER_FDS_H
 
+void move_fd(int *oldfd, int newfd);
 void sanitize_fds(void);
 void cloexec_fds(void);
 int xclose(int *fd);
