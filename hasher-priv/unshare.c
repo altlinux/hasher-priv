@@ -26,6 +26,19 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifndef CLONE_NEWNS
+# define CLONE_NEWNS	0x00020000
+#endif
+#ifndef CLONE_NEWUTS
+# define CLONE_NEWUTS	0x04000000
+#endif
+#ifndef CLONE_NEWIPC
+# define CLONE_NEWIPC	0x08000000
+#endif
+#ifndef CLONE_NEWNET
+# define CLONE_NEWNET	0x40000000
+#endif
+
 #include "priv.h"
 
 /*
@@ -49,12 +62,7 @@ test_unshare(int clone_flags, int share_flag)
 int
 test_unshare_mount(void)
 {
-#ifdef CLONE_NEWNS
 	return test_unshare(CLONE_NEWNS, share_mount);
-#else
-# warning "unshare(CLONE_NEWNS) is not available on this system"
-	return share_flag ? 0 : -1;
-#endif
 }
 
 static int
@@ -80,43 +88,30 @@ do_unshare(int clone_flags, const char *clone_name,
 void
 unshare_ipc(void)
 {
-#ifdef CLONE_NEWIPC
 	do_unshare(CLONE_NEWIPC, "CLONE_NEWIPC", share_ipc, "IPC namespace");
-#else
-# warning "unshare(CLONE_NEWIPC) is not available on this system"
-#endif
 }
 
 void
 unshare_mount(void)
 {
-#ifdef CLONE_NEWNS
 	if (do_unshare(CLONE_NEWNS, "CLONE_NEWNS", share_mount, "mount namespace") < 0)
 		return;
 
 	setup_mountpoints();
-#else
-# warning "unshare(CLONE_NEWNS) is not available on this system"
-#endif
 }
 
 void
 unshare_network(void)
 {
-#ifdef CLONE_NEWNET
 	if (do_unshare(CLONE_NEWNET, "CLONE_NEWNET", share_network, "network") < 0)
 		return;
 
 	setup_network();
-#else
-# warning "unshare(CLONE_NEWNET) is not available on this system"
-#endif
 }
 
 void
 unshare_uts(void)
 {
-#ifdef CLONE_NEWUTS
 	const char *name = "localhost.localdomain";
 
 	if (do_unshare(CLONE_NEWUTS, "CLONE_NEWUTS", share_uts, "UTS namespace") < 0)
@@ -124,7 +119,4 @@ unshare_uts(void)
 
 	if (sethostname(name, strlen(name)) < 0)
 		error(EXIT_FAILURE, errno, "sethostname: %s", name);
-#else
-# warning "unshare(CLONE_NEWUTS) is not available on this system"
-#endif
 }
