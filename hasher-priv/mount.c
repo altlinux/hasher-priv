@@ -276,19 +276,6 @@ lookup_mount_entry(const char *mpoint)
 	return e;
 }
 
-int
-do_mount(void)
-{
-	ensure_mountpoint_is_allowed(single_mountpoint);
-	load_fstab();
-	struct mnt_ent *e = lookup_mount_entry(single_mountpoint);
-	if (test_unshare_mount())
-		/* mount namespace isolation activated or explicitly requested */
-		return 0;
-	xmount(e);
-	return 0;
-}
-
 /* called by unshare_mount() after successful CLONE_NEWNS */
 void
 setup_mountpoints(void)
@@ -298,19 +285,19 @@ setup_mountpoints(void)
 	char   *mpoint_ctx = 0;
 	char   *mpoint = mpoints ? strtok_r(mpoints, " \t,", &mpoint_ctx) : 0;
 
+	/*
+	 * Just in case that some filesystem is mounted as shared,
+	 * remount it as slave in our namespace so that
+	 * no further mounts show up outside.
+	 */
+	if (mount("/", "/", NULL, MS_SLAVE | MS_REC, NULL) < 0 &&
+	    errno != EINVAL)
+		error(EXIT_FAILURE, errno,
+		      "mount MS_SLAVE: %s", chroot_path);
+
 	if (mpoint)
 	{
 		load_fstab();
-
-		/*
-		 * Just in case that some filesystem is mounted as shared,
-		 * remount it as slave in our namespace so that
-		 * no further mounts show up outside.
-		 */
-		if (mount("/", "/", NULL, MS_SLAVE | MS_REC, NULL) < 0 &&
-		    errno != EINVAL)
-			error(EXIT_FAILURE, errno,
-			      "mount MS_SLAVE: %s", chroot_path);
 
 		unshared_mount = 1;
 

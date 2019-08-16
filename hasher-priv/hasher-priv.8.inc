@@ -33,6 +33,16 @@ per-user per-number subconfig files
 The following environment variables are processed by
 .BR hasher\-priv:
 .TP
+.B requested_mountpoints
+Defines a comma-separated list of mount points which shall be mounted
+in
+.B chrootuid1
+and
+.B chrootuid2
+operation modes, if allowed by
+.B allowed_mountpoints
+configuration option.
+.TP
 .B wlimit_time_elapsed
 Define total execution time limit, in seconds.
 If
@@ -67,13 +77,6 @@ By default, IPC namespace inside chroot is isolated from host IPC namespace if
 .BR unshare (CLONE_NEWIPC)
 syscall is supported by kernel.
 .TP
-.B share_mount
-This boolean specifies whether mount namespace inside chroot should be shared
-with host mount namespace.
-By default, mount namespace inside chroot is isolated from host mount namespace if
-.BR unshare (CLONE_NEWNS)
-syscall is supported by kernel.
-.TP
 .B share_network
 This boolean specifies whether network inside chroot should be shared
 with host network.
@@ -103,15 +106,6 @@ Following operation modes have minimal security implications:
 .TP
 .B killuid
 Kill all processes running by pseudousers.
-.TP
-.BR chrootuid1 ", " chrootuid2
-Execute program in build chroot with credentials of pseudouser.
-When
-.B share_mount
-is not enabled, this operation is more security sensitive because
-it also unshares mount namespace and mounts resources like
-.B mount
-does.
 .PP
 Following operation modes have medium security implications:
 .TP
@@ -132,8 +126,15 @@ user may populate file system with these devices.  While \fItty\fR causes
 no harm for OS, pseudousers may abuse \fIptmx\fR to exhaust OS pty limit
 and therefore install DoS attack against host system.
 .TP
-.B mount
-Mount appropriate file system according to specified mount point.
+.BR chrootuid1 ", " chrootuid2
+Execute program in build chroot with credentials of pseudouser.
+This operation also unshares mount namespace and
+mounts all mount points that are specified by
+.B requested_mountpoints
+environment variable and allowed by
+.B allowed_mountpoints
+configuration option.
+Note that some of file systems are more security sensitive than others.
 For example,
 .I proc
 and
@@ -146,14 +147,6 @@ virtual file system provides access to all pty device files
 .I newinstance
 mount option) which also could be abused by pseudousers if these files
 have inappropriate permissions.
-.TP
-.B umount
-Umount all file systems previously mounted by
-\*(lq\fBhasher\-priv\fR mount\*(rq.  Unless appropriate
-.I prefix
-config option is set, this command may be abused by calling user to
-unmount essential file systems and therefore install DoS attack against
-host system.
 
 .PP
 All risky operation modes are not enabled by default.  They could be

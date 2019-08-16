@@ -28,7 +28,6 @@ chroot_prefix=
 if [ -n "$1" ]; then
 	chroot_prefix="$1"
 fi
-mounted=
 rm_ttydev=
 
 killuid()
@@ -39,10 +38,6 @@ killuid()
 exit_handler()
 {
 	local rc=$1
-	if [ -n "$chroot_prefix" -a -n "$mounted" ]; then
-		@helper@ $n umount "$chroot_prefix" ||
-			[ $rc = 0 ] || rc=1
-	fi
 	if [ -n "$rm_ttydev" ]; then
 		rm -f "$chroot_prefix/dev/tty" "$chroot_prefix/dev/ptmx" ||
 			[ $rc = 0 ] || rc=1
@@ -60,12 +55,9 @@ trap 'exit_handler $?' EXIT
 need_maketty=
 requested_mountpoints=
 if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
-	for target in `printf %s "$mountpoints" |tr ',' ' '`; do
-		@helper@ $n mount "$chroot_prefix" "$target" &&
-			mounted=1 ||
-			exit
-		[ "$target" != /dev/pts ] || need_maketty=1
-	done
+	case " $(printf %s "$mountpoints" |tr ',' ' ') " in
+		"* /dev/pts *") need_maketty=1 ;;
+	esac
 	requested_mountpoints="$mountpoints"
 	export requested_mountpoints
 fi

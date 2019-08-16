@@ -41,30 +41,6 @@
 
 #include "priv.h"
 
-/*
- * return values:
- *  0 - unshare not requested,
- *  1 - unshare succedded,
- * -1 - unshare failed.
- */
-static int
-test_unshare(int clone_flags, int share_flag)
-{
-	if (share_flag > 0)
-		return 0;
-	if (unshare(clone_flags) == 0)
-		return 1;
-	if (errno == ENOSYS || errno == EINVAL || errno == EPERM)
-		return share_flag ? 0 : -1;
-	return -1;
-}
-
-int
-test_unshare_mount(void)
-{
-	return test_unshare(CLONE_NEWNS, share_mount);
-}
-
 static int
 do_unshare(int clone_flags, const char *clone_name,
 	   int share_flag, const char *share_name)
@@ -94,7 +70,7 @@ unshare_ipc(void)
 void
 unshare_mount(void)
 {
-	if (do_unshare(CLONE_NEWNS, "CLONE_NEWNS", share_mount, "mount namespace") < 0)
+	if (do_unshare(CLONE_NEWNS, "CLONE_NEWNS", 0, "mount namespace") < 0)
 		return;
 
 	setup_mountpoints();

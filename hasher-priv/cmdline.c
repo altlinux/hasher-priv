@@ -77,11 +77,7 @@ print_help(void)
 	       "       make tty devices in given chroot;\n"
 	       "makeconsole <chroot path>:\n"
 	       "       make console devices in given chroot;\n"
-	       "mount <chroot path> <mount point>:\n"
-	       "       mount appropriate file system to the given mount point;\n"
-	       "umount <chroot path>:\n"
-	       "       umount all previously mounted file systems.\n",
-	       program_invocation_short_name);
+	       , program_invocation_short_name);
 	exit(EXIT_SUCCESS);
 }
 
@@ -98,7 +94,6 @@ print_version(void)
 }
 
 const char *chroot_path;
-const char *single_mountpoint;
 const char **chroot_argv;
 unsigned caller_num;
 
@@ -200,19 +195,6 @@ parse_cmdline(int argc, const char *argv[])
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
 		return TASK_MAKECONSOLE;
-	} else if (!strcmp("mount", av[0]))
-	{
-		if (ac != 3)
-			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		single_mountpoint = av[2];
-		return TASK_MOUNT;
-	} else if (!strcmp("umount", av[0]))
-	{
-		if (ac != 2)
-			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		return TASK_UMOUNT;
 	} else
 		show_usage("%s: invalid argument", av[0]);
 }

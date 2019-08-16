@@ -49,7 +49,6 @@ int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
 int share_caller_network = 0;
 int share_ipc = -1;
-int share_mount = -1;
 int share_network = -1;
 int share_uts = -1;
 change_rlimit_t change_rlimit[] = {
@@ -613,9 +612,6 @@ parse_env(void)
 
 	if ((e = getenv("share_ipc")))
 		share_ipc = str2bool("share_ipc", e, "environment");
-
-	if ((e = getenv("share_mount")))
-		share_mount = str2bool("share_mount", e, "environment");
 
 	if ((e = getenv("share_network")))
 		share_network = str2bool("share_network", e, "environment");

@@ -41,8 +41,6 @@ typedef enum
 	TASK_MAKEDEV,
 	TASK_MAKETTY,
 	TASK_MAKECONSOLE,
-	TASK_MOUNT,
-	TASK_UMOUNT
 } task_t;
 
 typedef struct
@@ -115,7 +113,6 @@ void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 
-int	test_unshare_mount(void);
 void	setup_mountpoints(void);
 void	setup_network(void);
 void	unshare_ipc(void);
@@ -132,13 +129,10 @@ int     do_chrootuid2(void);
 int     do_makeconsole(void);
 int     do_makedev(void);
 int     do_maketty(void);
-int     do_mount(void);
-int     do_umount(void);
 
 extern const char *chroot_path;
 extern const char **chroot_argv;
 
-extern const char *single_mountpoint;
 extern const char *allowed_mountpoints;
 extern const char *requested_mountpoints;
 
@@ -150,7 +144,6 @@ extern size_t x11_data_len;
 extern int share_caller_network;
 extern int unshared_mount;
 extern int share_ipc;
-extern int share_mount;
 extern int share_network;
 extern int share_uts;
 
