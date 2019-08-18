@@ -166,7 +166,8 @@ struct io_std
 
 typedef struct io_std *io_std_t;
 
-static int pty_fd = -1, ctl_fd = -1, x11_fd = -1, log_fd = -1;
+int log_fd = -1;
+static int pty_fd = -1, ctl_fd = -1, x11_fd = -1;
 static unsigned long total_bytes_read, total_bytes_written;
 
 static char *x11_saved_data, *x11_fake_data;
@@ -405,8 +406,6 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 		if (sigaction(SIGWINCH, &act, 0))
 			error(EXIT_FAILURE, errno, "sigaction");
 	}
-
-	log_fd = log_listen();
 
 	while (work_limits_ok(total_bytes_read, total_bytes_written))
 		if (handle_io(io) != EXIT_SUCCESS)

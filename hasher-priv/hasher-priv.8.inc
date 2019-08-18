@@ -107,27 +107,11 @@ Following operation modes have minimal security implications:
 .B killuid
 Kill all processes running by pseudousers.
 .PP
-Following operation modes have medium security implications:
-.TP
-.B makedev
-Create essential device files available for all users:
-\fInull\fR, \fIzero\fR, \fIfull\fR and \fIurandom\fR.
-Using this operation mode, caller user may populate file system with
-these devices.  While \fInull\fR, \fIzero\fR and \fIfull\fR cause no
-harm for OS, pseudousers may abuse \fIurandom\fR to cause host system
-randomness starvation.
-.PP
 Following operation modes have high security implications:
-.TP
-.B maketty
-Create terminal device files: \fItty\fR (current tty device) and
-\fIptmx\fR (PTY master multiplex).  Using this operation mode, caller
-user may populate file system with these devices.  While \fItty\fR causes
-no harm for OS, pseudousers may abuse \fIptmx\fR to exhaust OS pty limit
-and therefore install DoS attack against host system.
 .TP
 .BR chrootuid1 ", " chrootuid2
 Execute program in build chroot with credentials of pseudouser.
+
 This operation also unshares mount namespace and
 mounts all mount points that are specified by
 .B requested_mountpoints
@@ -147,6 +131,24 @@ virtual file system provides access to all pty device files
 .I newinstance
 mount option) which also could be abused by pseudousers if these files
 have inappropriate permissions.
+
+This operation also creates essential device files available for all users:
+.IR null ,
+.IR zero ,
+.IR full ,
+and
+.IR urandom .
+Pseudousers may abuse
+.I urandom
+to cause host system randomness starvation.
+
+If
+.I /dev/pts
+is mounted, this operation also creates terminal device files:
+.I tty
+(current tty device) and
+.I ptmx
+(PTY master multiplex).
 
 .PP
 All risky operation modes are not enabled by default.  They could be

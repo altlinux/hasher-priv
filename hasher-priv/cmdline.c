@@ -71,12 +71,6 @@ print_help(void)
 	       "       print uid:gid pair for user2;\n"
 	       "chrootuid2 <chroot path> <program> [program args]:\n"
 	       "       execute program in given chroot with credentials of user2;\n"
-	       "makedev <chroot path>:\n"
-	       "       make essential devices in given chroot;\n"
-	       "maketty <chroot path>:\n"
-	       "       make tty devices in given chroot;\n"
-	       "makeconsole <chroot path>:\n"
-	       "       make console devices in given chroot;\n"
 	       , program_invocation_short_name);
 	exit(EXIT_SUCCESS);
 }
@@ -177,24 +171,6 @@ parse_cmdline(int argc, const char *argv[])
 		chroot_path = av[1];
 		chroot_argv = av + 2;
 		return TASK_CHROOTUID2;
-	} else if (!strcmp("makedev", av[0]))
-	{
-		if (ac != 2)
-			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		return TASK_MAKEDEV;
-	} else if (!strcmp("maketty", av[0]))
-	{
-		if (ac != 2)
-			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		return TASK_MAKETTY;
-	} else if (!strcmp("makeconsole", av[0]))
-	{
-		if (ac != 2)
-			show_usage("%s: invalid usage", av[0]);
-		chroot_path = av[1];
-		return TASK_MAKECONSOLE;
 	} else
 		show_usage("%s: invalid argument", av[0]);
 }

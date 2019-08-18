@@ -8,6 +8,4 @@ hasher-priv.8
 hasher-priv.conf.5
 hasher-useradd
 hasher-useradd.8
-makedev.sh
-maketty.sh
 *.[do]

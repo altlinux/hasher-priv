@@ -36,16 +36,17 @@
 
 const char *const *chroot_prefix_list;
 const char *chroot_prefix_path;
-const char *allowed_mountpoints;
-const char *requested_mountpoints;
 const char *change_user1, *change_user2;
 const char *term;
 const char *x11_display, *x11_key;
+str_list_t allowed_mountpoints;
+str_list_t requested_mountpoints;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int change_nice = 8;
-int     allow_tty_devices, use_pty;
+int     makedev_console;
+int     use_pty;
 size_t  x11_data_len;
 int share_caller_network = 0;
 int share_ipc = -1;
@@ -262,22 +263,39 @@ parse_wlim(const char *name, const char *value,
 	modify_wlim(pval, value, optname, filename, 1);
 }
 
-static const char *
-parse_mountpoints(const char *value, const char *filename)
+static int
+strp_cmp(const void *a, const void *b)
 {
-	char   *targets = xstrdup(value);
-	char   *target = strtok(targets, " \t,");
+	return strcmp(* (char *const *) a, * (char *const *) b);
+}
 
-	for (; target; target = strtok(0, " \t,"))
-	{
-		if (target[0] != '/' || target[1] == '/')
-			error(EXIT_FAILURE, 0,
-			      "%s: mount point \"%s\" not supported",
-			      filename, target);
+static void
+parse_str_list(const char *value, str_list_t *s)
+{
+	if (s->len) {
+		memset(s->list, 0, s->len * sizeof(*s->list));
+		s->len = 0;
+	}
+	if (s->buf)
+		free(s->buf);
+
+	s->buf = xstrdup(value);
+	char *ctx = 0;
+	char *item = strtok_r(s->buf, " \t,", &ctx);
+
+	for (; item; item = strtok_r(0, " \t,", &ctx)) {
+		if (s->len >= s->allocated)
+			s->list = xgrowarray(s->list, &s->allocated,
+					     sizeof(*s->list));
+		s->list[s->len++] = item;
 	}
 
-	free(targets);
-	return xstrdup(value);
+	if (s->len)
+		qsort(s->list, s->len, sizeof(*s->list), strp_cmp);
+	/* clear duplicate entries */
+        for (size_t i = 1; i < s->len; ++i)
+		if (!strcmp(s->list[i - 1], s->list[i]))
+			s->list[i - 1] = 0;
 }
 
 static int
@@ -377,11 +395,9 @@ set_config(const char *name, const char *value, const char *filename)
 	else if (!strcasecmp("nice", name))
 		change_nice = str2nice(name, value, filename);
 	else if (!strcasecmp("allowed_mountpoints", name))
-	{
-		free((char *) allowed_mountpoints);
-		allowed_mountpoints = parse_mountpoints(value, filename);
-	} else if (!strcasecmp("allow_ttydev", name))
-		allow_tty_devices = str2bool(name, value, filename);
+		parse_str_list(value, &allowed_mountpoints);
+	else if (!strcasecmp("allow_ttydev", name))
+		(void) str2bool(name, value, filename);	/* obsolete */
 	else if (!strncasecmp(rlim_prefix, name, sizeof(rlim_prefix) - 1))
 		parse_rlim(name + sizeof(rlim_prefix) - 1, value, name,
 			   filename);
@@ -579,6 +595,9 @@ parse_env(void)
 		modify_wlim(&wlimit.bytes_written, e, "wlimit_bytes_written",
 			    "environment", 0);
 
+	if ((e = getenv("makedev_console")))
+		makedev_console = str2bool("makedev_console", e, "environment");
+
 	if ((e = getenv("use_pty")))
 		use_pty = str2bool("use_pty", e, "environment");
 
@@ -620,8 +639,5 @@ parse_env(void)
 		share_uts = str2bool("share_uts", e, "environment");
 
 	if ((e = getenv("requested_mountpoints")))
-	{
-		free((char *) requested_mountpoints);
-		requested_mountpoints = parse_mountpoints(e, "environment");
-	}
+		parse_str_list(e, &requested_mountpoints);
 }
