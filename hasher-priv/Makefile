@@ -19,7 +19,7 @@
 
 PROJECT = hasher-priv
 VERSION = $(shell sed '/^Version: */!d;s///;q' hasher-priv.spec)
-HELPERS = getconf.sh getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
+HELPERS = getconf.sh getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
 TARGETS = $(PROJECT) hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)

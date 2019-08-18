@@ -51,18 +51,16 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 		const mode_t rwdev = S_IFCHR | 0666;
 		struct stat st;
 
-		safe_chdir("dev", stat_caller_ok_validator);
+		if (!dev_pts_mounted)
+			goto err;
+
+		safe_chdir("dev", stat_root_ok_validator);
 		dev_ptmx = "ptmx";
 		pts_fmt = "pts/%u";
 
 		if (stat(dev_pts_ptmx, &st) ||
 		    (st.st_mode & rwdev) != rwdev)
 			goto err;
-
-		if (unlink(dev_ptmx) && ENOENT != errno)
-			error(EXIT_FAILURE, errno, "unlink: %s", dev_ptmx);
-		if (symlink(dev_pts_ptmx, dev_ptmx))
-			error(EXIT_FAILURE, errno, "symlink: %s", dev_ptmx);
 	}
 
 	ptmx = open(dev_ptmx, dev_open_flags);

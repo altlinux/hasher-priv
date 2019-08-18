@@ -2,7 +2,7 @@
 /*
   Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
 
-  The makedev action for the hasher-priv program.
+  Setup devices for the hasher-priv program.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -30,83 +30,63 @@
 #include "priv.h"
 
 static void
-xmknod(const char *name, const char *devpath, mode_t mode, unsigned major,
-       unsigned minor)
+xmknod(const char *name, mode_t mode, unsigned major, unsigned minor)
 {
-	if (!link(devpath, name))
-		return;
-
 	if (mknod(name, mode, makedev(major, minor)))
 		error(EXIT_FAILURE, errno, "mknod: %s", name);
 }
 
-int
-do_makedev(void)
+static void
+xmkdir(const char *name, mode_t mode)
 {
-	gid_t   saved_gid = (gid_t) - 1;
-	mode_t  m;
-
-	chdiruid(chroot_path);
-	chdiruid("dev");
-
-	ch_gid(0, &saved_gid);
-	m = umask(0);
-
-	xmknod("null", "/dev/null", S_IFCHR | 0666, 1, 3);
-	xmknod("zero", "/dev/zero", S_IFCHR | 0666, 1, 5);
-	xmknod("full", "/dev/full", S_IFCHR | 0666, 1, 7);
-	xmknod("urandom", "/dev/urandom", S_IFCHR | 0644, 1, 9);
-	xmknod("random", "/dev/urandom", S_IFCHR | 0644, 1, 9);	/* pseudo random. */
-
-	umask(m);
-	ch_gid(saved_gid, 0);
-
-	return 0;
+	if (mkdir(name, mode))
+		error(EXIT_FAILURE, errno, "mkdir: %s", name);
 }
 
-int
-do_makeconsole(void)
+static void
+xsymlink(const char *target, const char *linkpath)
 {
-	gid_t   saved_gid = (gid_t) - 1;
-	mode_t  m;
-
-	chdiruid(chroot_path);
-	chdiruid("dev");
-
-	ch_gid(0, &saved_gid);
-	m = umask(0);
-
-	xmknod("console", "/dev/console", S_IFCHR | 0600, 5, 1);
-	xmknod("tty0", "/dev/tty0", S_IFCHR | 0600, 4, 0);
-	xmknod("fb0", "/dev/fb0", S_IFCHR | 0600, 29, 0);
-
-	umask(m);
-	ch_gid(saved_gid, 0);
-
-	return 0;
+	if (symlink(target, linkpath))
+		error(EXIT_FAILURE, errno, "symlink: %s", linkpath);
 }
 
-int
-do_maketty(void)
+void
+setup_devices(void)
 {
 	gid_t   saved_gid = (gid_t) - 1;
 	mode_t  m;
 
-	if (!allow_tty_devices)
-		error(EXIT_FAILURE, 0,
-		      "maketty: creating tty devices not allowed");
-
-	chdiruid(chroot_path);
-	chdiruid("dev");
+	chdiruid(chroot_path, stat_caller_ok_validator);
+	chdiruid("dev", stat_root_ok_validator);
 
 	ch_gid(0, &saved_gid);
 	m = umask(0);
 
-	xmknod("tty", "/dev/tty", S_IFCHR | 0666, 5, 0);
-	xmknod("ptmx", "/dev/ptmx", S_IFCHR | 0666, 5, 2);
+	xmkdir("pts", 0755);
+	xmkdir("shm", 0755);
+
+	xsymlink("../proc/self/fd", "fd");
+	xsymlink("../proc/self/fd/0", "stdin");
+	xsymlink("../proc/self/fd/1", "stdout");
+	xsymlink("../proc/self/fd/2", "stderr");
+
+	xmknod("null", S_IFCHR | 0666, 1, 3);
+	xmknod("zero", S_IFCHR | 0666, 1, 5);
+	xmknod("full", S_IFCHR | 0666, 1, 7);
+	xmknod("urandom", S_IFCHR | 0644, 1, 9);
+	xmknod("random", S_IFCHR | 0644, 1, 9);	/* pseudo random. */
+
+	xmknod("console", S_IFCHR | 0600, 5, 1);
+	xmknod("tty0", S_IFCHR | 0600, 4, 0);
+	xmknod("fb0", S_IFCHR | 0600, 29, 0);
+
+	if (dev_pts_mounted) {
+		xmknod("tty", S_IFCHR | 0666, 5, 0);
+		xsymlink("pts/ptmx", "ptmx");
+	}
+
+	log_fd = log_listen();
 
 	umask(m);
 	ch_gid(saved_gid, 0);
-
-	return 0;
 }

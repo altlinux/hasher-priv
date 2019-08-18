@@ -38,9 +38,6 @@ typedef enum
 	TASK_CHROOTUID1,
 	TASK_GETUGID2,
 	TASK_CHROOTUID2,
-	TASK_MAKEDEV,
-	TASK_MAKETTY,
-	TASK_MAKECONSOLE,
 } task_t;
 
 typedef struct
@@ -57,6 +54,13 @@ typedef struct
 	unsigned long bytes_read;
 	unsigned long bytes_written;
 } work_limit_t;
+
+typedef struct {
+	const char **list;
+	size_t len;
+	size_t allocated;
+	char *buf;
+} str_list_t;
 
 typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
 
@@ -80,7 +84,7 @@ void    parse_env(void);
 void    configure(void);
 void    ch_uid(uid_t uid, uid_t *save);
 void    ch_gid(gid_t gid, gid_t *save);
-void    chdiruid(const char *path);
+void    chdiruid(const char *path, VALIDATE_FPTR validator);
 void    purge_ipc(uid_t uid1, uid_t uid2);
 void    handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err, int ctl_fd) __attribute__ ((noreturn));
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
@@ -88,7 +92,6 @@ void    block_signal_handler(int no, int what);
 void    dfl_signal_handler(int no);
 void    safe_chdir(const char *name, VALIDATE_FPTR validator);
 void    stat_caller_ok_validator(struct stat *st, const char *name);
-void    stat_private_mount_ok_validator(struct stat *st, const char *name);
 void    stat_root_ok_validator(struct stat *st, const char *name);
 void    stat_any_ok_validator(struct stat *st, const char *name);
 void    fd_send(int ctl, int pass, const char *data, size_t len);
@@ -113,6 +116,7 @@ void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 
+void    setup_devices(void);
 void	setup_mountpoints(void);
 void	setup_network(void);
 void	unshare_ipc(void);
@@ -126,26 +130,25 @@ int     do_getugid1(void);
 int     do_chrootuid1(void);
 int     do_getugid2(void);
 int     do_chrootuid2(void);
-int     do_makeconsole(void);
-int     do_makedev(void);
-int     do_maketty(void);
 
 extern const char *chroot_path;
 extern const char **chroot_argv;
 
-extern const char *allowed_mountpoints;
-extern const char *requested_mountpoints;
+extern str_list_t allowed_mountpoints;
+extern str_list_t requested_mountpoints;
 
 extern const char *term;
 extern const char *x11_display, *x11_key;
 
-extern int allow_tty_devices, use_pty;
+extern int use_pty;
 extern size_t x11_data_len;
 extern int share_caller_network;
-extern int unshared_mount;
 extern int share_ipc;
 extern int share_network;
 extern int share_uts;
+
+extern int dev_pts_mounted;
+extern int log_fd;
 
 extern const char *const *chroot_prefix_list;
 extern const char *chroot_prefix_path;

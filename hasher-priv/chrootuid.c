@@ -88,10 +88,14 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	if (uid < MIN_CHANGE_UID || uid == getuid())
 		error(EXIT_FAILURE, 0, "invalid uid: %u", uid);
 
-	/* Unshare mount namespace, mount all requested mountpoints. */
+	/*
+	 * Unshare mount namespace,
+	 * mount all requested mountpoints,
+	 * setup devices.
+	 */
 	unshare_mount();
 
-	chdiruid(chroot_path);
+	chdiruid(chroot_path, stat_caller_ok_validator);
 
 	endpwent();
 	endgrent();

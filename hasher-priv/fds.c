@@ -70,7 +70,8 @@ sanitize_fds(void)
 
 	/* Close all the rest. */
 	for (; fd < max_fd; ++fd)
-		(void) close(fd);
+		if (log_fd < 0 || fd != log_fd)
+			(void) close(fd);
 
 	errno = 0;
 }

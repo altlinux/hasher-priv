@@ -91,7 +91,7 @@ chdiruid_simple(const char *path, VALIDATE_FPTR validator)
 
 /* This function may be executed with root privileges. */
 void
-chdiruid(const char *path)
+chdiruid(const char *path, VALIDATE_FPTR validator)
 {
 	uid_t   saved_uid = (uid_t) - 1;
 	gid_t   saved_gid = (gid_t) - 1;
@@ -109,25 +109,9 @@ chdiruid(const char *path)
 
 	/* Change and verify directory, check for chroot prefix path. */
 	if (path[0] == '/')
-		chdiruid_simple(path, stat_caller_ok_validator);
+		chdiruid_simple(path, validator);
 	else
 	{
-		VALIDATE_FPTR validator = unshared_mount ?
-			stat_private_mount_ok_validator: stat_caller_ok_validator;
-
-		/*
-		 * The only case when validator can be assigned to
-		 * stat_private_mount_ok_validator() is when this function
-		 * is called with a relative path after CLONE_NEWNS.
-		 *
-		 * The only way this can happen is via chrootuid() ->
-		 * unshare_mount() -> setup_mountpoints() -> xmount() ->
-		 * chdiruid() call chain.
-		 *
-		 * In this case, "path" is the directory (relative to
-		 * chroot_path) where mount() is going to be called.
-		 */
-
 		if (!strchr(path, '/'))
 			chdiruid_simple(path, validator);
 		else

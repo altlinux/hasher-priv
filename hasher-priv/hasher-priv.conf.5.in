@@ -44,17 +44,6 @@ option, = and value.  Both option and its value are case-insensitive.
 
 Each setting has a compiled in default which may be modified in the
 configuration file.
-.SH BOOLEAN OPTIONS
-Below is a list of boolean options.  The value for a boolean option may
-be set to
-.BR YES
-or
-.BR NO .
-.TP
-.B allow_ttydev
-If set to YES, \*(lq\fBhasher\-priv\fR maketty\*(rq command is allowed.
-
-Default: NO
 .SH NUMERIC OPTIONS
 Below is a list of numeric options.  A numeric option must be set to a
 non negative integer.

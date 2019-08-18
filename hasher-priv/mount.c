@@ -35,7 +35,7 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-int unshared_mount = 0;
+int dev_pts_mounted;
 
 static struct mnt_ent
 {
@@ -45,6 +45,7 @@ static struct mnt_ent
 	const char *mnt_opts;
 } def_fstab[] =
 {
+	{"dev", "/dev", "tmpfs", "nosuid,noexec,gid=0,mode=755,nr_blocks=1,nr_inodes=256"},
 	{"proc", "/proc", "proc", "ro,nosuid,nodev,noexec,gid=proc"},
 	{"devpts", "/dev/pts", "devpts", "ro,nosuid,noexec,gid=tty,mode=0620,ptmxmode=0666,newinstance"},
 	{"sysfs", "/sys", "sysfs", "ro,nosuid,nodev,noexec"},
@@ -169,8 +170,12 @@ xmount(struct mnt_ent *e)
 	for (opt = strtok(buf, ","); opt; opt = strtok(0, ","))
 		parse_opt(opt, &flags, &options);
 
-	chdiruid(chroot_path);
-	chdiruid(e->mnt_dir + 1);
+	chdiruid(chroot_path, stat_caller_ok_validator);
+
+	int is_dev_subdir = strncmp(e->mnt_dir + 1, "dev/", 4) == 0;
+	chdiruid(e->mnt_dir + 1,
+		 is_dev_subdir ? stat_root_ok_validator : stat_caller_ok_validator);
+
 	if (mount(e->mnt_fsname, ".", e->mnt_type, flags, options ? : ""))
 		error(EXIT_FAILURE, errno, "mount: %s", e->mnt_dir);
 
@@ -233,26 +238,13 @@ load_fstab(void)
 	(void) fclose(fp);
 }
 
-static void
-ensure_mountpoint_is_allowed(const char *mpoint)
+static int
+is_allowed(const char *item, str_list_t *allowed)
 {
-	if (mpoint[0] != '/' || mpoint[1] == '/')
-		error(EXIT_FAILURE, 0,
-		      "mount point \"%s\" not supported", mpoint);
-
-	char   *targets =
-		allowed_mountpoints ? xstrdup(allowed_mountpoints) : 0;
-	char   *target = targets ? strtok(targets, " \t,") : 0;
-
-	for (; target; target = strtok(0, " \t,"))
-		if (!strcmp(target, mpoint))
-			break;
-
-	if (!target)
-		error(EXIT_FAILURE, 0,
-		      "mount: %s: mount point not allowed", mpoint);
-
-	free(targets);
+	for (size_t i = 0; i < allowed->len; ++i)
+		if (allowed->list[i] && strcmp(item, allowed->list[i]) == 0)
+			return 1;
+	return 0;
 }
 
 static struct mnt_ent *
@@ -271,7 +263,7 @@ lookup_mount_entry(const char *mpoint)
 
 	if (!e)
 		error(EXIT_FAILURE, 0,
-		      "mount: %s: mount point not supported", mpoint);
+		      "%s: mount point is not supported", mpoint);
 
 	return e;
 }
@@ -280,10 +272,33 @@ lookup_mount_entry(const char *mpoint)
 void
 setup_mountpoints(void)
 {
-	char   *mpoints =
-		requested_mountpoints ? xstrdup(requested_mountpoints) : 0;
-	char   *mpoint_ctx = 0;
-	char   *mpoint = mpoints ? strtok_r(mpoints, " \t,", &mpoint_ctx) : 0;
+	const char **mpoint_vec = 0;
+	size_t mpoint_allocated = 0;
+	size_t mpoint_size = 0;
+
+	for (size_t i = 0; i < requested_mountpoints.len; ++i) {
+		const char *item = requested_mountpoints.list[i];
+		if (!item)
+			continue;
+		if (item[0] != '/' || item[1] == '/')
+			error(EXIT_FAILURE, 0,
+			      "%s: mount point is not supported", item);
+
+		if (is_allowed(item, &allowed_mountpoints)) {
+			if (mpoint_size >= mpoint_allocated)
+				mpoint_vec =
+					xgrowarray(mpoint_vec, &mpoint_allocated,
+						   sizeof(*mpoint_vec));
+			mpoint_vec[mpoint_size++] = item;
+		} else {
+			error(EXIT_FAILURE, 0,
+			      "%s: mount point is not allowed", item);
+		}
+	}
+
+	for (size_t i = 0; i < mpoint_size; ++i)
+		if (strcmp("/dev/pts", mpoint_vec[i]) == 0)
+			dev_pts_mounted = 1;
 
 	/*
 	 * Just in case that some filesystem is mounted as shared,
@@ -295,18 +310,14 @@ setup_mountpoints(void)
 		error(EXIT_FAILURE, errno,
 		      "mount MS_SLAVE: %s", chroot_path);
 
-	if (mpoint)
-	{
-		load_fstab();
+	load_fstab();
 
-		unshared_mount = 1;
+	xmount(lookup_mount_entry("/dev"));
 
-		for (; mpoint; mpoint = strtok_r(0, " \t,", &mpoint_ctx))
-		{
-			ensure_mountpoint_is_allowed(mpoint);
-			xmount(lookup_mount_entry(mpoint));
-		}
-	}
+	setup_devices();
 
-	free(mpoints);
+	for (size_t i = 0; i < mpoint_size; ++i)
+		xmount(lookup_mount_entry(mpoint_vec[i]));
+
+	free(mpoint_vec);
 }

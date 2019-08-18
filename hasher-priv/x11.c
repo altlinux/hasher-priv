@@ -41,29 +41,13 @@ static x11_connect_method_t x11_connect_method;
 static const char *x11_connect_name;
 static unsigned long x11_connect_port;
 
-/* This function may be executed with caller or child privileges. */
+/* This function may be executed with root or child privileges. */
 
 static int
-unix_listen(const char *dir_name, const char *file_name)
+unix_listen(const char *file_name)
 {
-	struct sockaddr_un sun;
-
-	memset(&sun, 0, sizeof(sun));
-	sun.sun_family = AF_UNIX;
-	snprintf(sun.sun_path, sizeof sun.sun_path, "%s/%s",
-		 dir_name, file_name);
-
-	if (unlink(sun.sun_path) && errno != ENOENT)
-	{
-		error(EXIT_SUCCESS, errno, "unlink: %s", sun.sun_path);
-		return -1;
-	}
-
-	if (mkdir(dir_name, 0700) && errno != EEXIST)
-	{
-		error(EXIT_SUCCESS, errno, "mkdir: %s", dir_name);
-		return -1;
-	}
+	struct sockaddr_un sun = { .sun_family = AF_UNIX };
+	strncat(sun.sun_path, file_name, sizeof(sun.sun_path) - 1);
 
 	int     fd;
 
@@ -90,16 +74,17 @@ unix_listen(const char *dir_name, const char *file_name)
 	return fd;
 }
 
-/* This function may be executed with caller privileges. */
+/* This function may be executed with root privileges. */
 
 int
 log_listen(void)
 {
-	int     fd = unix_listen("/dev", "log");
+	static const char log_path[] = "log";
 
-	if (fd >= 0 && chmod("/dev/log", 0622))
-	{
-		error(EXIT_SUCCESS, errno, "chmod: %s", "/dev/log");
+	int     fd = unix_listen(log_path);
+
+	if (fd >= 0 && chmod(log_path, 0622)) {
+		error(EXIT_SUCCESS, errno, "chmod: %s", log_path);
 		(void) close(fd);
 		fd = -1;
 	}
@@ -112,7 +97,17 @@ log_listen(void)
 int
 x11_listen(void)
 {
-	return unix_listen(X11_UNIX_DIR, "X10");
+	static const char x11_path[] = X11_UNIX_DIR "/X10";
+
+	if (mkdir(X11_UNIX_DIR, 0700) && errno != EEXIST) {
+		error(EXIT_SUCCESS, errno, "mkdir: %s", X11_UNIX_DIR);
+		return -1;
+	}
+	if (unlink(x11_path) && errno != ENOENT) {
+		error(EXIT_SUCCESS, errno, "unlink: %s", x11_path);
+		return -1;
+	}
+	return unix_listen(x11_path);
 }
 
 static int x11_dir_fd = -1;

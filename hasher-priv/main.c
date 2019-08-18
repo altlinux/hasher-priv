@@ -78,12 +78,6 @@ main(int ac, const char *av[])
 			return do_getugid2();
 		case TASK_CHROOTUID2:
 			return do_chrootuid2();
-		case TASK_MAKEDEV:
-			return do_makedev();
-		case TASK_MAKETTY:
-			return do_maketty();
-		case TASK_MAKECONSOLE:
-			return do_makeconsole();
 		default:
 			error(EXIT_FAILURE, 0, "unknown task %d", task);
 	}
