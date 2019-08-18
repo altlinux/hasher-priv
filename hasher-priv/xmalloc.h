@@ -24,6 +24,7 @@
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t nmemb, size_t size);
+extern void *xgrowarray(void *ptr, size_t *nmemb, size_t size);
 extern char *xstrdup(const char *s);
 extern char *xasprintf(char **ptr, const char *fmt, ...)
 	__attribute__ ((__format__(__printf__, 2, 3)))
