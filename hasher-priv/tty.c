@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid tty functions for the hasher-priv program.
 

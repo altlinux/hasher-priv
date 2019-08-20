@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2016  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid parent handler for the hasher-priv program.
 

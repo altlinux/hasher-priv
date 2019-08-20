@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
 
   Setup devices for the hasher-priv program.
 

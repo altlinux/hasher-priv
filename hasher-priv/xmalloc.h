@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2002-2007  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2002-2019  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.
 
