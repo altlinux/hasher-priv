@@ -116,7 +116,7 @@ void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 
-void    setup_devices(void);
+void    setup_devices(const char **vec, size_t len);
 void	setup_mountpoints(void);
 void	setup_network(void);
 void	unshare_ipc(void);
@@ -134,6 +134,7 @@ int     do_chrootuid2(void);
 extern const char *chroot_path;
 extern const char **chroot_argv;
 
+extern str_list_t allowed_devices;
 extern str_list_t allowed_mountpoints;
 extern str_list_t requested_mountpoints;
 

@@ -23,11 +23,15 @@
 #include <errno.h>
 #include <error.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <sys/sysmacros.h>
 
 #include "priv.h"
+#include "xmalloc.h"
 
 static void
 xmknod(const char *name, mode_t mode, unsigned major, unsigned minor)
@@ -50,8 +54,41 @@ xsymlink(const char *target, const char *linkpath)
 		error(EXIT_FAILURE, errno, "symlink: %s", linkpath);
 }
 
+static void
+copy_dev(const char *src)
+{
+	static const char prefix[] = "/dev/";
+	const size_t prefix_len = sizeof(prefix) - 1;
+	const char *name = src + prefix_len;
+
+	if (strncmp(src, prefix, prefix_len) || !name || !*name)
+		error(EXIT_FAILURE, 0, "%s: invalid device name", src);
+
+	struct stat st;
+	if (stat(src, &st))
+		error(EXIT_FAILURE, errno, "stat: %s", src);
+
+	mode_t dev_mode = st.st_mode & (S_IFCHR|S_IFBLK);
+	if (!dev_mode)
+		error(EXIT_FAILURE, errno, "%s: not a device", src);
+	dev_mode |= 0666;
+
+	if (mknod(name, dev_mode, st.st_rdev)) {
+		if (errno != ENOENT)
+			error(EXIT_FAILURE, errno, "mknod: %s", name);
+
+		/* create parent directory and try again */
+		char *buf = xstrdup(name);
+		const char *dir = dirname(buf);
+		xmkdir(dir, 0755);
+		if (mknod(name, dev_mode, st.st_rdev))
+			error(EXIT_FAILURE, errno, "mknod: %s", name);
+		free(buf);
+	}
+}
+
 void
-setup_devices(void)
+setup_devices(const char **vec, size_t len)
 {
 	gid_t   saved_gid = (gid_t) - 1;
 	mode_t  m;
@@ -86,6 +123,9 @@ setup_devices(void)
 	}
 
 	log_fd = log_listen();
+
+	for (size_t i = 0; i < len; ++i)
+		copy_dev(vec[i]);
 
 	umask(m);
 	ch_gid(saved_gid, 0);

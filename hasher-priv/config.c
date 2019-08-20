@@ -39,6 +39,7 @@ const char *chroot_prefix_path;
 const char *change_user1, *change_user2;
 const char *term;
 const char *x11_display, *x11_key;
+str_list_t allowed_devices;
 str_list_t allowed_mountpoints;
 str_list_t requested_mountpoints;
 uid_t   change_uid1, change_uid2;
@@ -393,6 +394,8 @@ set_config(const char *name, const char *value, const char *filename)
 		change_umask = str2umask(name, value, filename);
 	else if (!strcasecmp("nice", name))
 		change_nice = str2nice(name, value, filename);
+	else if (!strcasecmp("allowed_devices", name))
+		parse_str_list(value, &allowed_devices);
 	else if (!strcasecmp("allowed_mountpoints", name))
 		parse_str_list(value, &allowed_mountpoints);
 	else if (!strcasecmp("allow_ttydev", name))

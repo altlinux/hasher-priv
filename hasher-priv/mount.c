@@ -272,6 +272,10 @@ lookup_mount_entry(const char *mpoint)
 void
 setup_mountpoints(void)
 {
+	const char **dev_vec = 0;
+	size_t dev_allocated = 0;
+	size_t dev_size = 0;
+
 	const char **mpoint_vec = 0;
 	size_t mpoint_allocated = 0;
 	size_t mpoint_size = 0;
@@ -284,7 +288,21 @@ setup_mountpoints(void)
 			error(EXIT_FAILURE, 0,
 			      "%s: mount point is not supported", item);
 
-		if (is_allowed(item, &allowed_mountpoints)) {
+		int allowed_dev = is_allowed(item, &allowed_devices);
+		int allowed_mpoint = is_allowed(item, &allowed_mountpoints);
+		if (allowed_dev && allowed_mpoint)
+			error(EXIT_FAILURE, 0,
+			      "%s: configured as device and mount point"
+			      " simultaneously", item);
+		if (allowed_dev) {
+			if (strncmp(item, "/dev/", 5))
+				error(EXIT_FAILURE, 0,
+				      "%s: device name is not supported", item);
+			if (dev_size >= dev_allocated)
+				dev_vec = xgrowarray(dev_vec, &dev_allocated,
+						     sizeof(*dev_vec));
+			dev_vec[dev_size++] = item;
+		} else if (allowed_mpoint) {
 			if (mpoint_size >= mpoint_allocated)
 				mpoint_vec =
 					xgrowarray(mpoint_vec, &mpoint_allocated,
@@ -314,10 +332,11 @@ setup_mountpoints(void)
 
 	xmount(lookup_mount_entry("/dev"));
 
-	setup_devices();
+	setup_devices(dev_vec, dev_size);
 
 	for (size_t i = 0; i < mpoint_size; ++i)
 		xmount(lookup_mount_entry(mpoint_vec[i]));
 
+	free(dev_vec);
 	free(mpoint_vec);
 }
