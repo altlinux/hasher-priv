@@ -23,11 +23,15 @@
 #include <errno.h>
 #include <error.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <sys/sysmacros.h>
 
 #include "priv.h"
+#include "xmalloc.h"
 
 static void
 xmknod(const char *name, mode_t mode, unsigned major, unsigned minor)
@@ -50,8 +54,55 @@ xsymlink(const char *target, const char *linkpath)
 		error(EXIT_FAILURE, errno, "symlink: %s", linkpath);
 }
 
+static void
+make_parent_directories(const char *name)
+{
+	char *dir = xstrdup(name);
+	for (char *p = dir; (p = strchr(p, '/')); ++p) {
+		*p = '\0';
+		if (mkdir(dir, 0755) && errno != EEXIST)
+			error(EXIT_FAILURE, errno, "mkdir: %s", dir);
+		*p = '/';
+	}
+	free(dir);
+}
+
+static void
+copy_dev(const char *src)
+{
+	static const char prefix[] = "/dev/";
+	const size_t prefix_len = sizeof(prefix) - 1;
+	const char *name = src + prefix_len;
+
+	if (strncmp(src, prefix, prefix_len) || !*name)
+		error(EXIT_FAILURE, 0, "%s: invalid device name", src);
+
+	/* Copy device characteristics from the source device file.  */
+	struct stat st;
+	if (stat(src, &st))
+		error(EXIT_FAILURE, errno, "stat: %s", src);
+
+	mode_t dev_mode = st.st_mode & (S_IFCHR|S_IFBLK);
+	if (!dev_mode)
+		error(EXIT_FAILURE, errno, "%s: not a device", src);
+
+	/*
+	 * Deduce access mode for the new device file from access mode
+	 * of the source device file.
+	 */
+	if (st.st_mode & S_IRUSR && st.st_mode & (S_IRGRP | S_IROTH))
+		dev_mode |= S_IRUSR | S_IRGRP | S_IROTH;
+	if (st.st_mode & S_IWUSR && st.st_mode & (S_IWGRP | S_IWOTH))
+		dev_mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+
+	if (strchr(name, '/'))
+		make_parent_directories(name);
+
+	xmknod(name, dev_mode, major(st.st_rdev), minor(st.st_rdev));
+}
+
 void
-setup_devices(void)
+setup_devices(const char **vec, size_t len)
 {
 	gid_t   saved_gid = (gid_t) - 1;
 	mode_t  m;
@@ -88,6 +139,9 @@ setup_devices(void)
 	}
 
 	log_fd = log_listen();
+
+	for (size_t i = 0; i < len; ++i)
+		copy_dev(vec[i]);
 
 	umask(m);
 	ch_gid(saved_gid, 0);

@@ -154,6 +154,15 @@ Hardcoded default: (none)
 .br
 System default: ~:/tmp/.private
 .TP
+.B allowed_devices
+This option specifies a comma-separated list of devices which are allowed
+to be specified to \*(lq\fBhasher\-priv\fR chrootuid1\*(rq and
+\*(lq\fBhasher\-priv\fR chrootuid2\*(rq commands using
+.B requested_mountpoints
+environment variable.
+
+Default: (none)
+.TP
 .B allowed_mountpoints
 This option specifies a comma-separated list of mount points which are allowed
 to be specified to \*(lq\fBhasher\-priv\fR chrootuid1\*(rq and

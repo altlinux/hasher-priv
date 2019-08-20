@@ -40,8 +40,10 @@ in
 and
 .B chrootuid2
 operation modes, if allowed by
+.B allowed_devices
+or
 .B allowed_mountpoints
-configuration option.
+configuration options.
 .TP
 .B wlimit_time_elapsed
 Define total execution time limit, in seconds.
@@ -116,8 +118,10 @@ This operation also unshares mount namespace and
 mounts all mount points that are specified by
 .B requested_mountpoints
 environment variable and allowed by
+.B allowed_devices
+or
 .B allowed_mountpoints
-configuration option.
+configuration options.
 Note that some of file systems are more security sensitive than others.
 For example,
 .I proc
