@@ -35,17 +35,86 @@ get_open_max(void)
 	return (int) i;
 }
 
+/* This function may be executed with root privileges. */
+#if defined HAVE_CLOSE_RANGE
+static int
+sys_close_range(unsigned int from, unsigned int to)
+{
+	return close_range(from, to, 0);
+}
+#elif defined __NR_close_range
+static int
+sys_close_range(unsigned int from, unsigned int to)
+{
+	return syscall(__NR_close_range, from, to, 0) < 0 ? -1 : 0;
+}
+#else
+static int
+sys_close_range(unsigned int __attribute__((unused)) from, unsigned int __attribute__((unused)) to)
+{
+	errno = ENOSYS;
+	return -1;
+}
+#endif
+
+/* This function may be executed with root privileges. */
+static int
+attempt_efficient_close_range(int from, int to)
+{
+	int r;
+
+	unsigned int u_from = (unsigned int)from;
+	unsigned int u_to = (unsigned int)to;
+	unsigned int u_log_fd = (unsigned int)log_fd;
+
+	if (u_log_fd < u_from || u_log_fd > u_to) {
+		/* Close the whole range. */
+		r = sys_close_range(u_from, u_to);
+		if (r >= 0)
+			return 1;
+	}
+	else if (u_from == u_log_fd) {
+		r = sys_close_range(u_from + 1, u_to);
+		if (r >= 0)
+			return 1;
+	}
+	else if (u_log_fd == u_to) {
+		r = sys_close_range(u_from, u_to - 1);
+		if (r >= 0)
+			return 1;
+	}
+	else if (u_from < u_log_fd && u_log_fd < u_to) {
+		/* Close two split ranges. Both calls must succeed. */
+		r = sys_close_range(u_from, u_log_fd - 1);
+		if (r < 0) /* reverse! */
+			return 0;
+		r = sys_close_range(u_log_fd + 1, u_to);
+		if (r < 0)
+			return 0;
+		return 1;
+	}
+	return 0;
+}
+
+/* This function may be executed with root privileges. */
+static void
+close_range_brutely(int from, int to)
+{
+	for (; from < to; ++from)
+		if (log_fd < 0 || from != log_fd)
+			(void) close(from);
+}
 
 /* This function may be executed with root privileges. */
 void
 sanitize_fds(void)
 {
-	int     fd, max_fd;
+	int     fd;
 
 	/* Set safe umask, just in case. */
 	umask(077);
 
-	/* Check for stdin, stdout and stderr: they should present. */
+	/* Check for stdin, stdout and stderr: they should be present. */
 	for (fd = STDIN_FILENO; fd <= STDERR_FILENO; ++fd)
 	{
 		struct stat st;
@@ -55,12 +124,10 @@ sanitize_fds(void)
 			exit(EXIT_FAILURE);
 	}
 
-	max_fd = get_open_max();
-
 	/* Close all the rest. */
-	for (; fd < max_fd; ++fd)
-		if (log_fd < 0 || fd != log_fd)
-			(void) close(fd);
+	if (!attempt_efficient_close_range(fd, -1)) {
+		close_range_brutely(fd, get_open_max());
+	}
 
 	errno = 0;
 }
