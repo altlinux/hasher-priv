@@ -13,6 +13,8 @@ MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
 TARGETS = $(PROJECT) hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
 
+have-cc-function = $(shell echo 'extern void $(1)(void); int main () { $(1)(); return 0; }' |$(CC) -o /dev/null -xc - > /dev/null 2>&1 && echo "-D$(2)")
+
 sysconfdir = /etc
 libexecdir = /usr/lib
 sbindir = /usr/sbin
@@ -33,6 +35,7 @@ WARNINGS = -Wall -W -Wshadow -Wpointer-arith -Wwrite-strings \
 	-Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn \
 	-Wmissing-format-attribute -Wredundant-decls -Wdisabled-optimization
 CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
+	$(call have-cc-function,close_range,HAVE_CLOSE_RANGE) \
 	$(LFS_CFLAGS) -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -O2
 override CFLAGS += $(WARNINGS)
