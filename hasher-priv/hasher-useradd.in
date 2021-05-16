@@ -38,6 +38,7 @@ Usage: $PROG [options] <user>
 Valid options are:
   --names=USER1:USER2   names for satellite users;
   --number=NUMBER       subconfig identifier;
+  -r, --system          pass this option to useradd(8);
   -V, --version         print program version and exit;
   -h, --help            show this text and exit.
 
@@ -73,6 +74,7 @@ eval set -- "$TEMP"
 
 names=
 number=
+system=
 while :; do
 	case "$1" in
 		--names) shift; names="$1"
@@ -80,6 +82,8 @@ while :; do
 		--number)
 			number="$(opt_check_number "$1" "$2")"
 			shift
+			;;
+		-r|--system) system=1
 			;;
 		-h|--help) show_help
 			;;
@@ -126,6 +130,7 @@ min_uid="$(sed -ne 's/^UID_MIN[[:space:]]\+\([1-9][0-9]*\)[[:space:]]*$/\1/p' /e
 [ "$caller_uid" -ge "$min_uid" ] &&
 	useradd_system_option= ||
 	useradd_system_option=-r
+[ -z "$system" ] || useradd_system_option=-r
 
 cd /etc/hasher-priv/user.d
 
