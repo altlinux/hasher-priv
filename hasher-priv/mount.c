@@ -35,7 +35,7 @@ static struct mnt_ent
 } def_fstab[] =
 {
 	{"dev", "/dev", "tmpfs", "nosuid,noexec,gid=0,mode=755,nr_blocks=0,nr_inodes=256"},
-	{"proc", "/proc", "proc", "ro,nosuid,nodev,noexec,gid=proc"},
+	{"proc", "/proc", "proc", "ro,nosuid,nodev,noexec,gid=proc,hidepid=2"},
 	{"devpts", "/dev/pts", "devpts", "ro,nosuid,noexec,gid=tty,mode=0620,ptmxmode=0666,newinstance"},
 	{"sysfs", "/sys", "sysfs", "ro,nosuid,nodev,noexec"},
 	{"shmfs", "/dev/shm", "tmpfs", "nosuid,nodev,noexec,gid=0,mode=1777,nr_blocks=4096,nr_inodes=4096"},
