@@ -25,6 +25,7 @@
 #include "macros.h"
 #include "server_comm.h"
 #include "signals.h"
+#include "title.h"
 #include "xmalloc.h"
 
 #include <stdio.h>
@@ -37,6 +38,9 @@ ATTRIBUTE_NORETURN
 static void
 job_executor(struct job *job)
 {
+	setproctitle("%s %s/%u:%u",
+		     job2str(job->type), caller_user, caller_uid, caller_num);
+
 	/* Reset standard descriptors. */
 	for (unsigned int i = 0; i < ARRAY_SIZE(job->std_fds); ++i)
 		move_fd(&job->std_fds[i], (int) i);
@@ -110,6 +114,9 @@ ATTRIBUTE_NORETURN
 static void
 job_runner(struct hadaemon *d, int conn, struct job *job)
 {
+	setproctitle("runner %s/%u:%u: %s",
+		     caller_user, caller_uid, caller_num, job2str(job->type));
+
 	xclose(&d->fd_pipe[0]);
 	xclose(&d->fd_ep);
 	xclose(&d->fd_signal);

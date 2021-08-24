@@ -30,6 +30,7 @@
 #include "sockets.h"
 #include "xmalloc.h"
 #include "xstring.h"
+#include "title.h"
 
 #include <sys/epoll.h>
 #include <sys/signalfd.h>
@@ -91,6 +92,9 @@ run_caller_server(struct hadaemon *d, int cl_conn, const struct session *a)
 
 	caller_num = a->caller_num;
 	init_caller_data(a->caller_uid, a->caller_gid);
+
+	setproctitle("server %s/%u:%u",
+		     caller_user, caller_uid, caller_num);
 
 	struct hadaemon sh = {
 		.fd_pipe = { d->fd_pipe[0], -1 }
