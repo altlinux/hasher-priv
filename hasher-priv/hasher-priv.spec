@@ -18,6 +18,7 @@ Provides: %helperdir
 Conflicts: hasher < 1.4.0
 
 BuildPreReq: help2man, sisyphus_check >= 0:0.7.11
+BuildRequires: setproctitle-devel
 
 %description
 This package provides helpers for executing privileged operations

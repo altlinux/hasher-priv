@@ -54,6 +54,7 @@ CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 CFLAGS = -pipe -O2
 override CFLAGS += $(WARNINGS)
 LDLIBS =
+server_LDLIBS = -lsetproctitle
 
 SRC_client =		\
 	cmdline.c	\
@@ -128,7 +129,7 @@ $(PROJECT): $(OBJ_client)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 hasher-privd: $(OBJ_server)
-	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) $(server_LDLIBS) -o $@
 
 install: all
 	$(MKDIR_P) -m710 $(DESTDIR)$(configdir)/user.d
