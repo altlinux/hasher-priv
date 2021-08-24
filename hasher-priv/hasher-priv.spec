@@ -31,10 +31,18 @@ required by hasher utilities.
 %make_build CC="%__cc" CFLAGS="%optflags" libexecdir="%_libexecdir"
 
 %install
-%makeinstall
+%makeinstall \
+	systemd_unitdir="%{?buildroot:%{buildroot}}%_unitdir" \
+	#
 
 %pre
 groupadd -r -f hashman
+
+%post
+%post_service hasher-privd
+
+%preun
+%preun_service hasher-privd
 
 %files
 %_sbindir/hasher-useradd
@@ -51,6 +59,8 @@ groupadd -r -f hashman
 %attr(755,root,root) %helperdir/*.sh
 # daemon
 %_sbindir/hasher-privd
+%_unitdir/hasher-privd.service
+%_initdir/hasher-privd
 
 %doc DESIGN
 

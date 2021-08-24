@@ -1,0 +1,95 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Short-Description:    A privileged helper for the hasher project
+# Description:          A privileged helper for the hasher project
+# Provides:             hasher-priv
+# Required-Start:       $remote_fs
+# Required-Stop:        $remote_fs
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+### END INIT INFO
+
+WITHOUT_RC_COMPAT=1
+
+# Source function library.
+. /etc/init.d/functions
+
+NAME=hasher-privd
+PIDFILE="/var/run/$NAME.pid"
+LOCKFILE="/var/lock/subsys/$NAME"
+RUNTIMEDIR="/run/hasher-priv"
+RUNTIMEDIRMODE="0710"
+GROUP=hashman
+RETVAL=0
+
+ensure_runtime_directory()
+{
+	mkdir -p "$RUNTIMEDIR"
+	chmod 0710 "$RUNTIMEDIR"
+	chgrp "$GROUP" "$RUNTIMEDIR"
+}
+
+ensure_no_runtime_directory()
+{
+	rm -rf "$RUNTIMEDIR"
+}
+
+start()
+{
+	ensure_runtime_directory
+	start_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" -- "$NAME" -D
+	RETVAL=$?
+	return $RETVAL
+}
+
+stop()
+{
+	stop_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" "$NAME"
+	RETVAL=$?
+	ensure_no_runtime_directory
+	return $RETVAL
+}
+
+restart()
+{
+	stop
+	start
+}
+
+# See how we were called.
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status --pidfile "$PIDFILE" "$NAME"
+		RETVAL=$?
+		;;
+	restart|reload)
+		restart
+		;;
+	condstart)
+		if [ ! -e "$LOCKFILE" ]; then
+			start
+		fi
+		;;
+	condstop)
+		if [ -e "$LOCKFILE" ]; then
+			stop
+		fi
+		;;
+	condrestart|condreload)
+		if [ -e "$LOCKFILE" ]; then
+			restart
+		fi
+		;;
+	*)
+		msg_usage "${0##*/} {start|stop|status|restart|reload|condstart|condstop|condrestart|condreload}"
+		RETVAL=1
+esac
+
+exit $RETVAL

@@ -17,6 +17,8 @@ TARGETS = $(PROJECT) hasher-privd hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8P
 have-cc-function = $(shell echo 'extern void $(1)(void); int main () { $(1)(); return 0; }' |$(CC) -o /dev/null -xc - > /dev/null 2>&1 && echo "-D$(2)")
 
 sysconfdir = /etc
+initdir=$(sysconfdir)/rc.d/init.d
+systemd_unitdir=/lib/systemd/system
 libexecdir = /usr/lib
 sbindir = /usr/sbin
 mandir = /usr/share/man
@@ -139,6 +141,10 @@ install: all
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(HELPERS) $(DESTDIR)$(helperdir)/
+	$(MKDIR_P) -m755 $(DESTDIR)$(systemd_unitdir)
+	$(INSTALL) -p -m644 hasher-privd.service $(DESTDIR)$(systemd_unitdir)/
+	$(MKDIR_P) -m755 $(DESTDIR)$(initdir)
+	$(INSTALL) -p -m755 hasher-privd.sysvinit $(DESTDIR)$(initdir)/hasher-privd
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
 	$(INSTALL) -p -m755 hasher-privd $(DESTDIR)$(sbindir)/
 	$(INSTALL) -p -m755 hasher-useradd $(DESTDIR)$(sbindir)/
