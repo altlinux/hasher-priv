@@ -13,7 +13,6 @@ Source: %name-%version.tar
 %define configdir %_sysconfdir/%name
 
 Provides: %helperdir
-Obsoletes: pkg-build-priv
 
 # Due to makedev removal.
 Conflicts: hasher < 1.4.0
@@ -34,12 +33,6 @@ required by hasher utilities.
 %makeinstall
 
 %pre
-if getent group pkg-build > /dev/null; then
-	groupmod -n hashman pkg-build
-fi
-if [ -d %_sysconfdir/pkg-build-priv -a ! -d %configdir ]; then
-	mv %_sysconfdir/pkg-build-priv %configdir
-fi
 groupadd -r -f hashman
 
 %files
