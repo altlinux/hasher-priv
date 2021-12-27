@@ -13,7 +13,6 @@ Source: %name-%version.tar
 %define configdir %_sysconfdir/%name
 
 Provides: %helperdir
-PreReq: coreutils, shadow-utils, glibc-utils
 Obsoletes: pkg-build-priv
 
 # Due to makedev removal.
