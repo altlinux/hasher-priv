@@ -38,19 +38,21 @@ get_open_max(void)
 /* This function may be executed with root privileges. */
 #if defined HAVE_CLOSE_RANGE
 static int
-sys_close_range(unsigned int from, unsigned int to)
+sys_close_range(unsigned int from, unsigned int to, unsigned int flags)
 {
-	return close_range(from, to, 0);
+	return close_range(from, to, (int) flags);
 }
 #elif defined __NR_close_range
 static int
-sys_close_range(unsigned int from, unsigned int to)
+sys_close_range(unsigned int from, unsigned int to, unsigned int flags)
 {
-	return syscall(__NR_close_range, from, to, 0) < 0 ? -1 : 0;
+	return syscall(__NR_close_range, from, to, flags) < 0 ? -1 : 0;
 }
 #else
 static int
-sys_close_range(unsigned int __attribute__((unused)) from, unsigned int __attribute__((unused)) to)
+sys_close_range(unsigned int __attribute__((unused)) from,
+		unsigned int __attribute__((unused)) to,
+		unsigned int __attribute__((unused)) flags)
 {
 	errno = ENOSYS;
 	return -1;
@@ -117,7 +119,7 @@ sanitize_fds(void)
 	fd = reorder_fds(fd);
 
 	/* Close all the rest. */
-	if (sys_close_range((unsigned int) fd, -1U) < 0) {
+	if (sys_close_range((unsigned int) fd, -1U, 0) < 0) {
 		close_range_brutely(fd, get_open_max());
 	}
 
