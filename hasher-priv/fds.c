@@ -58,51 +58,40 @@ sys_close_range(unsigned int __attribute__((unused)) from, unsigned int __attrib
 #endif
 
 /* This function may be executed with root privileges. */
-static int
-attempt_efficient_close_range(int from, int to)
-{
-	int r;
-
-	unsigned int u_from = (unsigned int)from;
-	unsigned int u_to = (unsigned int)to;
-	unsigned int u_log_fd = (unsigned int)log_fd;
-
-	if (u_log_fd < u_from || u_log_fd > u_to) {
-		/* Close the whole range. */
-		r = sys_close_range(u_from, u_to);
-		if (r >= 0)
-			return 1;
-	}
-	else if (u_from == u_log_fd) {
-		r = sys_close_range(u_from + 1, u_to);
-		if (r >= 0)
-			return 1;
-	}
-	else if (u_log_fd == u_to) {
-		r = sys_close_range(u_from, u_to - 1);
-		if (r >= 0)
-			return 1;
-	}
-	else if (u_from < u_log_fd && u_log_fd < u_to) {
-		/* Close two split ranges. Both calls must succeed. */
-		r = sys_close_range(u_from, u_log_fd - 1);
-		if (r < 0) /* reverse! */
-			return 0;
-		r = sys_close_range(u_log_fd + 1, u_to);
-		if (r < 0)
-			return 0;
-		return 1;
-	}
-	return 0;
-}
-
-/* This function may be executed with root privileges. */
 static void
 close_range_brutely(int from, int to)
 {
-	for (; from < to; ++from)
-		if (log_fd < 0 || from != log_fd)
-			(void) close(from);
+	for (; from < to; ++from) {
+		(void) close(from);
+	}
+}
+
+/* This function may be executed with root privileges. */
+static int
+reorder_fd(int start_fd, int *target_fdp)
+{
+	if (*target_fdp < start_fd) {
+		return start_fd;
+	}
+
+	if (*target_fdp > start_fd) {
+		if (dup2(*target_fdp, start_fd) != start_fd) {
+			error(EXIT_FAILURE, errno, "dup2(%d, %d)",
+			      *target_fdp, start_fd);
+		}
+		/* Old *target_fdp will be closed by close_range. */
+		*target_fdp = start_fd;
+	}
+
+	return ++start_fd;
+}
+
+/* This function may be executed with root privileges. */
+static int
+reorder_fds(int start_fd)
+{
+	/* Reorder log_fd, other descriptors may be added later. */
+	return reorder_fd(start_fd, &log_fd);
 }
 
 /* This function may be executed with root privileges. */
@@ -124,8 +113,11 @@ sanitize_fds(void)
 			exit(EXIT_FAILURE);
 	}
 
+	/* Reorder descriptors that should be kept open. */
+	fd = reorder_fds(fd);
+
 	/* Close all the rest. */
-	if (!attempt_efficient_close_range(fd, -1)) {
+	if (sys_close_range((unsigned int) fd, -1U) < 0) {
 		close_range_brutely(fd, get_open_max());
 	}
 
