@@ -18,6 +18,10 @@
 #include <linux/limits.h>
 #include <limits.h>
 
+#ifndef CLOSE_RANGE_CLOEXEC
+# define CLOSE_RANGE_CLOEXEC	(1U << 2)
+#endif
+
 #include "priv.h"
 
 /* This function may be executed with root privileges. */
@@ -65,6 +69,23 @@ close_range_brutely(int from, int to)
 {
 	for (; from < to; ++from) {
 		(void) close(from);
+	}
+}
+
+/* This function may be executed with root privileges. */
+static void
+cloexec_range_brutely(int from, int to)
+{
+	for (; from < to; ++from) {
+		int     flags = fcntl(from, F_GETFD, 0);
+
+		if (flags < 0)
+			continue;
+
+		int     newflags = flags | FD_CLOEXEC;
+
+		if (flags != newflags && fcntl(from, F_SETFD, newflags))
+			error(EXIT_FAILURE, errno, "fcntl F_SETFD");
 	}
 }
 
@@ -130,20 +151,11 @@ sanitize_fds(void)
 void
 cloexec_fds(void)
 {
-	int     fd, max_fd = get_open_max();
-
 	/* Set close-on-exec flag on all non-standard descriptors. */
-	for (fd = STDERR_FILENO + 1; fd < max_fd; ++fd)
-	{
-		int     flags = fcntl(fd, F_GETFD, 0);
+	int     fd = STDERR_FILENO + 1;
 
-		if (flags < 0)
-			continue;
-
-		int     newflags = flags | FD_CLOEXEC;
-
-		if (flags != newflags && fcntl(fd, F_SETFD, newflags))
-			error(EXIT_FAILURE, errno, "fcntl F_SETFD");
+	if (sys_close_range((unsigned int) fd, -1U, CLOSE_RANGE_CLOEXEC) < 0) {
+		cloexec_range_brutely(fd, get_open_max());
 	}
 
 	errno = 0;
