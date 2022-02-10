@@ -1,70 +1,74 @@
-
 /*
-  Copyright (C) 2002-2019  Dmitry V. Levin <ldv@altlinux.org>
+ * Dynamic memory allocation with error checking.
+ *
+ * Copyright (C) 2002-2019  Dmitry V. Levin <ldv@altlinux.org>
+ * Copyright (c) 2015-2021 The strace developers.
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ */
 
-  Dynamic memory allocation with error checking.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
-
-/* Code in this file may be executed with root privileges. */
-
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <errno.h>
-#include <error.h>
-#include <limits.h>
-
+#include "error_prints.h"
+#include "macros.h"
 #include "xmalloc.h"
 
-void   *
-xmalloc(size_t size)
-{
-	void   *r = malloc(size);
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-	if (!r)
-		error(EXIT_FAILURE, errno, "malloc: allocating %lu bytes",
-		      (unsigned long) size);
-	return r;
+ATTRIBUTE_NORETURN
+static void
+die_out_of_memory(void)
+{
+	error_msg_and_die("Out of memory");
 }
 
-void   *
+void *
+xmalloc(size_t size)
+{
+	void *p = malloc(size);
+
+	if (!p)
+		die_out_of_memory();
+
+	return p;
+}
+
+void *
 xcalloc(size_t nmemb, size_t size)
 {
-	void   *r = calloc(nmemb, size);
+	void *p = calloc(nmemb, size);
 
-	if (!r)
-		error(EXIT_FAILURE, errno, "calloc: allocating %lu*%lu bytes",
-		      (unsigned long) nmemb, (unsigned long) size);
-	return r;
+	if (!p)
+		die_out_of_memory();
+
+	return p;
 }
 
 #define HALF_SIZE_T	(((size_t) 1) << (sizeof(size_t) * 4))
 
-void   *
-xreallocarray(void *ptr, size_t nmemb, size_t elem_size)
+void *
+xreallocarray(void *ptr, size_t nmemb, size_t size)
 {
-	size_t bytes = nmemb * elem_size;
+	size_t bytes = nmemb * size;
 
-	if ((nmemb | elem_size) >= HALF_SIZE_T &&
-	    elem_size && bytes / elem_size != nmemb)
-		error(EXIT_FAILURE, 0, "realloc: nmemb*size too big");
+	if ((nmemb | size) >= HALF_SIZE_T &&
+	    size && bytes / size != nmemb)
+		die_out_of_memory();
 
-	void *r = realloc(ptr, bytes);
+	void *p = realloc(ptr, bytes);
 
-	if (!r)
-		error(EXIT_FAILURE, errno, "realloc: allocating %lu*%lu bytes",
-		      (unsigned long) nmemb, (unsigned long) elem_size);
+	if (!p)
+		die_out_of_memory();
 
-	return r;
+	return p;
 }
 
 void *
 xgrowarray(void *const ptr, size_t *const nmemb, const size_t memb_size)
 {
-	/* this is the same value as glibc DEFAULT_MXFAST */
+	/* This is the same value as glibc DEFAULT_MXFAST. */
 	enum { DEFAULT_ALLOC_SIZE = 64 * sizeof(long) / 4 };
 
 	size_t grow_memb;
@@ -76,33 +80,37 @@ xgrowarray(void *const ptr, size_t *const nmemb, const size_t memb_size)
 		grow_memb = (*nmemb >> 1) + 1;
 
 	if ((*nmemb + grow_memb) < *nmemb)
-		error(EXIT_FAILURE, 0, "xgrowarray: array too big");
+		die_out_of_memory();
 
 	*nmemb += grow_memb;
 
 	return xreallocarray(ptr, *nmemb, memb_size);
 }
 
-char   *
-xstrdup(const char *s)
+char *
+xstrdup(const char *str)
 {
-	size_t  len = strlen(s);
-	char   *r = xmalloc(len + 1);
+	if (!str)
+		return NULL;
 
-	memcpy(r, s, len + 1);
-	return r;
+	char *p = strdup(str);
+
+	if (!p)
+		die_out_of_memory();
+
+	return p;
 }
 
-char   *
+char *
 xasprintf(const char *fmt, ...)
 {
-	va_list arg;
-	va_start(arg, fmt);
+	va_list ap;
+	va_start(ap, fmt);
 
 	char *res;
-	if (vasprintf(&res, fmt, arg) < 0)
-		error(EXIT_FAILURE, errno, "vasprintf");
+	if (vasprintf(&res, fmt, ap) < 0)
+		die_out_of_memory();
 
-	va_end(arg);
+	va_end(ap);
 	return res;
 }
