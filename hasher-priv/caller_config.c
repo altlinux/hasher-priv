@@ -416,7 +416,15 @@ configure_caller(void)
 	load_caller_config("system");
 
 	safe_chdir("user.d", stat_root_ok_validator);
-	load_caller_config(caller_user);
+
+	char *fname = xasprintf("%u", (unsigned int) caller_uid);
+	if (access(fname, F_OK)) {
+		free(fname);
+		fname = 0;
+		load_caller_config(caller_user);
+	} else {
+		load_caller_config(fname);
+	}
 
 	if (caller_num) {
 		/* Discard user1 and user2. */
@@ -426,7 +434,13 @@ configure_caller(void)
 		free((void *) change_user2);
 		change_user2 = 0;
 
-		load_caller_config(xasprintf("%s:%u", caller_user, caller_num));
+		free(fname);
+		fname = xasprintf("%u:%u", (unsigned int) caller_uid, caller_num);
+		if (access(fname, F_OK)) {
+			free(fname);
+			fname = xasprintf("%s:%u", caller_user, caller_num);
+		}
+		load_caller_config(fname);
 	}
 
 	safe_chdir("/", stat_root_ok_validator);

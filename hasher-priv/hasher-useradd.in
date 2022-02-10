@@ -136,13 +136,18 @@ min_uid="$(sed -ne 's/^UID_MIN[[:space:]]\+\([1-9][0-9]*\)[[:space:]]*$/\1/p' /e
 cd /etc/hasher-priv/user.d
 
 if [ -z "$number" ]; then
-	config="$caller"
+	config="$caller_uid"
+	old_config="$caller"
 else
-	config="$caller:$number"
+	config="$caller_uid:$number"
+	old_config="$caller:$number"
 fi
 
-! [ -e "$config" ] ||
+[ ! -e "$config" ] ||
 	Fatal "config file '$config' for user '$caller' already exists"
+
+[ ! -e "$old_config" ] ||
+	Fatal "config file '$old_config' for user '$caller' already exists"
 
 # First satellite.
 useradd $useradd_system_option -M -d /dev/null -s /dev/null \
