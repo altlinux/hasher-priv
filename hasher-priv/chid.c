@@ -33,7 +33,7 @@ ch_uid(uid_t uid, uid_t *save)
 	if (save)
 		*save = tmp;
 	if ((uid_t) setfsuid(uid) != uid)
-		error(EXIT_FAILURE, errno, "change uid: %u", uid);
+		error(EXIT_FAILURE, 0, "failed to change fsuid to %u", uid);
 }
 
 /* This function may be executed with root privileges. */
@@ -45,7 +45,7 @@ ch_gid(gid_t gid, gid_t *save)
 	if (save)
 		*save = tmp;
 	if ((gid_t) setfsgid(gid) != gid)
-		error(EXIT_FAILURE, errno, "change gid: %u", gid);
+		error(EXIT_FAILURE, 0, "failed to change fsgid to %u", gid);
 }
 
 #else /* ! ENABLE_SETFSUGID */
@@ -57,7 +57,7 @@ ch_uid(uid_t uid, uid_t *save)
 	if (save)
 		*save = geteuid();
 	if (setresuid((uid_t)-1, uid, 0) < 0)
-		error(EXIT_FAILURE, errno, "change uid: %u", uid);
+		error(EXIT_FAILURE, errno, "failed to change euid to %u", uid);
 }
 
 /* This function may be executed with root privileges. */
@@ -67,7 +67,7 @@ ch_gid(gid_t gid, gid_t *save)
 	if (save)
 		*save = getegid();
 	if (setresgid((gid_t)-1, gid, 0) < 0)
-		error(EXIT_FAILURE, errno, "change gid: %u", gid);
+		error(EXIT_FAILURE, errno, "failed to change egid to %u", gid);
 }
 
 #endif /* ENABLE_SETFSUGID */
