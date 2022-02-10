@@ -22,6 +22,7 @@
 #include <sys/mount.h>
 
 #include "priv.h"
+#include "macros.h"
 #include "xmalloc.h"
 
 int dev_pts_mounted;
@@ -41,8 +42,6 @@ static struct mnt_ent
 	{"shmfs", "/dev/shm", "tmpfs", "nosuid,nodev,noexec,gid=0,mode=1777,nr_blocks=4096,nr_inodes=4096"},
 	{"/sys/fs/cgroup", "/sys/fs/cgroup", "rbind", "ro,rbind,nosuid,nodev,noexec"}
 };
-
-#define def_fstab_size (sizeof (def_fstab) / sizeof (def_fstab[0]))
 
 #ifndef MS_MANDLOCK
 #define MS_MANDLOCK	64
@@ -99,18 +98,16 @@ static struct
 	{"nodiratime", 0, MS_NODIRATIME}
 };
 
-#define opt_map_size (sizeof (opt_map) / sizeof (opt_map[0]))
-
 static void
 parse_opt(const char *opt, unsigned long *flags, char **options)
 {
 	unsigned i;
 
-	for (i = 0; i < opt_map_size; ++i)
+	for (i = 0; i < ARRAY_SIZE(opt_map); ++i)
 		if (!strcmp(opt, opt_map[i].name))
 			break;
 
-	if (i < opt_map_size)
+	if (i < ARRAY_SIZE(opt_map))
 	{
 		if (opt_map[i].invert)
 			*flags &= ~opt_map[i].value;
@@ -244,7 +241,7 @@ lookup_mount_entry(const char *mpoint)
 		if (!strcmp(mpoint, var_fstab[i]->mnt_dir))
 			e = var_fstab[i];
 
-	for (i = 0; !e && i < def_fstab_size; ++i)
+	for (i = 0; !e && i < ARRAY_SIZE(def_fstab); ++i)
 		if (!strcmp(mpoint, def_fstab[i].mnt_dir))
 			e = &def_fstab[i];
 

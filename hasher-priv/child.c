@@ -21,6 +21,7 @@
 #include <sys/wait.h>
 
 #include "priv.h"
+#include "macros.h"
 #include "xmalloc.h"
 
 static void
@@ -128,15 +129,15 @@ xauth_add_entry(char *const *env)
 			{ "xauth", "add", ":10.0", ".", x11_key, 0 };
 		const char *paths[] =
 			{ "/usr/bin/xauth", "/usr/X11R6/bin/xauth" };
-		size_t  i, paths_size = sizeof(paths) / sizeof(paths[0]);
-		int     errors[paths_size];
+		size_t  i;
+		int     errors[ARRAY_SIZE(paths)];
 
-		for (i = 0; i < paths_size; ++i)
+		for (i = 0; i < ARRAY_SIZE(paths); ++i)
 		{
 			execve(paths[i], (char *const *) av, env);
 			errors[i] = errno;
 		}
-		for (i = 0; i < paths_size; ++i)
+		for (i = 0; i < ARRAY_SIZE(paths); ++i)
 			error(EXIT_SUCCESS, errors[i], "execve: %s",
 			      paths[i]);
 		_exit(EXIT_FAILURE);
