@@ -2,6 +2,7 @@
  * The chdir-with-validation module for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * Copyright (C) 2022  Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
  * All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -89,6 +90,26 @@ safe_chdir(const char *path, VALIDATE_FPTR validator)
 			safe_chdir_component(elem, validator);
 		free(p);
 	}
+}
+
+/*
+ * Change the current working directory using
+ * fstat+validate+fchdir technique.
+ *
+ * This function may be executed with root privileges.
+ */
+void
+safe_fchdir(int fd, VALIDATE_FPTR validator)
+{
+	struct stat st;
+
+	if (fstat(fd, &st) < 0)
+		perror_msg_and_die("fstat");
+
+	validator(&st, "(dirfd)");
+
+	if (fchdir(fd) < 0)
+		perror_msg_and_die("fchdir");
 }
 
 /*

@@ -2,6 +2,7 @@
  * The switch-user-and-chdir-with-validation module for the hasher-privd server program.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * Copyright (C) 2022  Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
  * All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -128,6 +129,34 @@ chdiruid(const char *path, VALIDATE_FPTR validator)
 			safe_chdir(elem, validator);
 		free(p);
 	}
+
+	/* Check the current working directory against the chroot prefix path. */
+	check_cwd();
+
+	/* Restore credentials. */
+	restore_creds(saved_uid, saved_gid);
+}
+
+/*
+ * Change the current working directory to the given descriptor.
+ * Temporary change credentials to caller_user during this operation.
+ * If chroot prefix path is set, ensure that it matches given descriptor.
+ *
+ * This function may be executed with root privileges.
+ */
+void
+fchdiruid(int fd, VALIDATE_FPTR validator)
+{
+	if (fd < 0)
+		error_msg_and_die("invalid chroot fd");
+
+	/* Change credentials. */
+	uid_t saved_uid;
+	gid_t saved_gid;
+	change_creds(&saved_uid, &saved_gid);
+
+	/* Change and verify directory. */
+	safe_fchdir(fd, validator);
 
 	/* Check the current working directory against the chroot prefix path. */
 	check_cwd();

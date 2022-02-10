@@ -186,8 +186,11 @@ main(int ac, const char *av[], const char *ev[])
 	send_fds(conn, CMD_JOB_FDS, "stdio", fds, ARRAY_SIZE(fds));
 	if (args)
 		send_strings(conn, CMD_JOB_ARGUMENTS, "arguments", args);
-	if (job == JOB_CHROOTUID1 || job == JOB_CHROOTUID2)
+	if (job == JOB_CHROOTUID1 || job == JOB_CHROOTUID2) {
 		send_strings(conn, CMD_JOB_ENVIRON, "environment", ev);
+		send_fds(conn, CMD_JOB_CHROOT_FD, "chroot descriptor",
+			 &chroot_fd, 1);
+	}
 
 	return send_run(conn);
 }

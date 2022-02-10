@@ -13,6 +13,8 @@ Here is the control flow of unprivileged hasher-priv client (euid=caller_uid):
   + connect to the session server by SOCKETDIR/caller_uid:caller_num socket
 + send a command to start a new job
   + receive a result code from the server
++ if the job is a chrootuid, send chroot fd to the server
+  + receive a result code from the server
 + send current stdin, stdout, and stderr to the server
   + receive a result code from the server
 + send the job arguments if any
@@ -121,11 +123,12 @@ Here is the control flow of the privileged job handler (euid=root):
 + enter the command loop
   + receive the job command header
     + reject repeated commands
-    + supported commands: type, fds, arguments, environ, run
+    + supported commands: type, fds, chroot_fd, arguments, environ, run
   + receive the data according to the job command header
     + validate the number of received arguments according to the job type
   + if the command is to run,
     + check that arguments were received if the job type requires arguments
+    + check that a chroot descriptor was received if the job type requires it
     + run the job and terminate the job command loop
 + exit process
 
@@ -142,8 +145,7 @@ Here is the control flow of the privileged job runner (euid=root):
 + in the child,
   + replace stdin, stdout and stderr with those that were received
   + re-initialize the logger
-  + check the job arguments
-    + chroot_path is initialized here
+  + initialize chroot_fd
   + sanitize file descriptors
     + set safe umask
     + ensure 0,1,2 are valid file descriptors
@@ -174,9 +176,13 @@ Here is the control flow of the privileged job runner (euid=root):
         + check that the server and the client belong to the same namespaces
         + enter the client's mount, ipc, uts, and network namespaces
           if they differ from the server's namespaces
-      + setup mounts and devices
+      + setup mount namespace
+        + safe fchdir to chroot_fd
         + unshare mount namespace
-        + safe chdir to chroot_path
+        + reopen chroot_fd directory in the new mount namespace
+        + safe fchdir to chroot_fd
+      + setup mounts and devices
+        + safe fchdir to chroot_fd
         + safe chdir to dev
         + mount dev
         + create devices available to all users: null, zero, full, random, urandom
@@ -185,7 +191,7 @@ Here is the control flow of the privileged job runner (euid=root):
         + if /dev/pts is going to be mounted, create devices: tty, ptmx
         + mount /dev/shm
         + mount all mountpoints specified by requested_mountpoints environment variable
-      + safe chdir to chroot_path
+      + safe fchdir to chroot_fd
       + sanitize file descriptors again
       + if use_pty is disabled, create a pipe to handle child's stdout and stderr
       + if X11 forwarding is requested, create a socketpair and

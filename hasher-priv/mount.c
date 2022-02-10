@@ -12,9 +12,12 @@
 #include "caller_config.h"
 #include "chdir.h"
 #include "error_prints.h"
+#include "fds.h"
 #include "file_config.h"
+#include "macros.h"
 #include "makedev.h"
 #include "mount.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,10 +28,6 @@
 #include <grp.h>
 #include <mntent.h>
 #include <sys/mount.h>
-
-#include "priv.h"
-#include "macros.h"
-#include "xmalloc.h"
 
 int dev_pts_mounted;
 
@@ -162,7 +161,7 @@ xmount(struct mnt_ent *e)
 	for (opt = strtok(buf, ","); opt; opt = strtok(0, ","))
 		parse_opt(opt, &flags, &options);
 
-	chdiruid(chroot_path, stat_caller_ok_validator);
+	fchdiruid(chroot_fd, stat_caller_ok_validator);
 
 	int is_dev_subdir = strncmp(e->mnt_dir + 1, "dev/", 4) == 0;
 	chdiruid(e->mnt_dir + 1,
@@ -294,7 +293,7 @@ setup_mountpoints(void)
 	 */
 	if (mount("/", "/", NULL, MS_SLAVE | MS_REC, NULL) < 0 &&
 	    errno != EINVAL)
-		perror_msg_and_die("mount MS_SLAVE: %s", chroot_path);
+		perror_msg_and_die("mount MS_SLAVE");
 
 	setup_fstab();
 

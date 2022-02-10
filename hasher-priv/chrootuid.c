@@ -17,6 +17,7 @@
 #include "error_prints.h"
 #include "executors.h"
 #include "fds.h"
+#include "mount.h"
 #include "ns.h"
 #include "parent.h"
 #include "pty.h"
@@ -26,6 +27,7 @@
 #include "x11.h"
 #include "xmalloc.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,8 +37,6 @@
 #include <grp.h>
 #include <sys/prctl.h>
 #include <sys/socket.h>
-
-#include "priv.h"
 
 static void
 set_rlimits(void)
@@ -107,13 +107,22 @@ chrootuid(uid_t uid, gid_t gid, const char *user_name, const char *const *argv,
 	setup_ns(caller_pid, caller_uid);
 
 	/*
-	 * Unshare mount namespace,
-	 * mount all requested mountpoints,
-	 * setup devices.
+	 * chdir to the chroot directory,
+	 * unshare the mount namespace,
+	 * reopen the chroot directory in the new mount namespace.
 	 */
+	fchdiruid(chroot_fd, stat_caller_ok_validator);
 	unshare_mount();
+	chroot_fd = open(".", O_RDONLY);
+	if (chroot_fd < 0)
+		perror_msg_and_die("open: .");
 
-	chdiruid(chroot_path, stat_caller_ok_validator);
+	/* Mount all requested mountpoints and setup devices. */
+	setup_mountpoints();
+
+	/* chdir back to the chroot directory after setup_mountpoints. */
+	fchdiruid(chroot_fd, stat_caller_ok_validator);
+	xclose(&chroot_fd);
 
 	endpwent();
 	endgrent();
@@ -139,7 +148,7 @@ chrootuid(uid_t uid, gid_t gid, const char *user_name, const char *const *argv,
 	master = open_pty(&slave, OPEN_PTY_UNCHROOTED, OPEN_PTY_VERBOSE);
 
 	if (chroot(".") < 0)
-		perror_msg_and_die("chroot: %s", chroot_path);
+		perror_msg_and_die("chroot");
 
 	/* Try to create another pty inside chroot. */
 	{

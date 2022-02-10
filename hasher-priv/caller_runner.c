@@ -32,8 +32,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-const char *chroot_path;
-
 ATTRIBUTE_NORETURN
 static void
 job_executor(struct job *job)
@@ -47,17 +45,7 @@ job_executor(struct job *job)
 
 	init_log_standalone();
 
-	/* Check job arguments. */
-	switch (job->type) {
-		case JOB_CHROOTUID1:
-		case JOB_CHROOTUID2:
-			chroot_path = job->argv[0];
-			if (chroot_path && *chroot_path != '/')
-				error_msg_and_die("%s: invalid chroot path",
-						  chroot_path);
-		default:
-			break;
-	}
+	chroot_fd = job->chroot_fd;
 
 	/* Check and sanitize file descriptors. */
 	sanitize_fds();
@@ -82,13 +70,13 @@ job_executor(struct job *job)
 			rc = do_getugid1();
 			break;
 		case JOB_CHROOTUID1:
-			rc = do_chrootuid1((const char *const *) job->argv + 1);
+			rc = do_chrootuid1((const char *const *) job->argv);
 			break;
 		case JOB_GETUGID2:
 			rc = do_getugid2();
 			break;
 		case JOB_CHROOTUID2:
-			rc = do_chrootuid2((const char *const *) job->argv + 1);
+			rc = do_chrootuid2((const char *const *) job->argv);
 			break;
 		default:
 			error_msg_and_die("unknown job %d", job->type);

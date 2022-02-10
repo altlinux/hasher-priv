@@ -60,7 +60,7 @@ validate_arguments(job_enum_t job, char **argv)
 	case JOB_CHROOTUID1:
 	case JOB_CHROOTUID2:
 		more_args = 1;
-		required_args = 2;
+		required_args = 1;
 		break;
 	default:
 		error_msg("unknown job type: %u", job);
@@ -87,6 +87,8 @@ validate_arguments(job_enum_t job, char **argv)
 void
 deallocate_job_resources(struct job *job)
 {
+	xclose(&job->chroot_fd);
+
 	for (unsigned int i = 0; i < ARRAY_SIZE(job->std_fds); ++i) {
 		xclose(&job->std_fds[i]);
 	}
@@ -210,6 +212,10 @@ validate_job(const struct job *job)
 	switch (job->type) {
 	case JOB_CHROOTUID1:
 	case JOB_CHROOTUID2:
+		if (!(job->mask & CMD_JOB_CHROOT_FD)) {
+			error_msg("no root directory");
+			return -1;
+		}
 		if (!(job->mask & CMD_JOB_ARGUMENTS)) {
 			error_msg("no arguments");
 			return -1;
@@ -225,6 +231,7 @@ int
 receive_job_request(struct hadaemon *d, int conn)
 {
 	struct job job = {
+		.chroot_fd = -1,
 		.std_fds = { -1, -1, -1 }
 	};
 
@@ -243,6 +250,13 @@ receive_job_request(struct hadaemon *d, int conn)
 		case CMD_JOB_TYPE:
 			job.mask |= hdr.type;
 			job.type = hdr.len;
+			break;
+
+		case CMD_JOB_CHROOT_FD:
+			job.mask |= hdr.type;
+			if ((hdr.len != sizeof(job.chroot_fd)) ||
+			    fd_recv(conn, &job.chroot_fd, 1, 0, 0) < 0)
+				return respond_bad_request(conn, &job);
 			break;
 
 		case CMD_JOB_FDS:

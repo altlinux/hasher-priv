@@ -11,12 +11,14 @@
 
 #include "cmdline.h"
 #include "error_prints.h"
+#include "fds.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <fcntl.h>
 
 ATTRIBUTE_NORETURN
 ATTRIBUTE_FORMAT((printf, 1, 2))
@@ -100,6 +102,16 @@ get_caller_num(const char *str)
 	return (unsigned) n;
 }
 
+static int
+open_directory(const char *path)
+{
+	int fd = open(path, O_RDONLY | O_DIRECTORY);
+	if (fd < 0)
+		perror_msg_and_die("%s", path);
+
+	return fd;
+}
+
 /* Parse command line arguments. */
 job_enum_t
 parse_cmdline(int argc, const char *argv[], const char ***job_args)
@@ -151,7 +163,8 @@ parse_cmdline(int argc, const char *argv[], const char ***job_args)
 	{
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
-		*job_args = av + 1;
+		chroot_fd = open_directory(av[1]);
+		*job_args = av + 2;
 		return JOB_CHROOTUID1;
 	} else if (!strcmp("getugid2", av[0]))
 	{
@@ -162,7 +175,8 @@ parse_cmdline(int argc, const char *argv[], const char ***job_args)
 	{
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
-		*job_args = av + 1;
+		chroot_fd = open_directory(av[1]);
+		*job_args = av + 2;
 		return JOB_CHROOTUID2;
 	} else
 		show_usage("%s: invalid argument", av[0]);

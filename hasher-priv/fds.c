@@ -23,6 +23,7 @@
 # define CLOSE_RANGE_CLOEXEC	(1U << 2)
 #endif
 
+int chroot_fd = -1;
 int log_fd = -1;
 
 static int
@@ -108,8 +109,15 @@ reorder_fd(int start_fd, int *target_fdp)
 static int
 reorder_fds(int start_fd)
 {
-	/* Reorder log_fd, other descriptors may be added later. */
-	return reorder_fd(start_fd, &log_fd);
+	/* Reorder log_fd, and chroot_fd. */
+	if (log_fd < chroot_fd) {
+		start_fd = reorder_fd(start_fd, &log_fd);
+		start_fd = reorder_fd(start_fd, &chroot_fd);
+	} else {
+		start_fd = reorder_fd(start_fd, &chroot_fd);
+		start_fd = reorder_fd(start_fd, &log_fd);
+	}
+	return start_fd;
 }
 
 void

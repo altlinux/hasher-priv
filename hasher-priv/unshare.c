@@ -11,7 +11,6 @@
 
 #include "caller_config.h"
 #include "error_prints.h"
-#include "mount.h"
 #include "net.h"
 #include "unshare.h"
 #include <errno.h>
@@ -64,10 +63,7 @@ unshare_ipc(void)
 void
 unshare_mount(void)
 {
-	if (do_unshare(CLONE_NEWNS, "CLONE_NEWNS", 0, "mount namespace") < 0)
-		return;
-
-	setup_mountpoints();
+	do_unshare(CLONE_NEWNS, "CLONE_NEWNS", 0, "mount namespace");
 }
 
 void

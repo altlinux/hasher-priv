@@ -27,8 +27,6 @@
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 
-#include "priv.h"
-
 static void
 xmknod(const char *name, mode_t mode, unsigned major, unsigned minor)
 {
@@ -103,7 +101,7 @@ setup_devices(const char **vec, size_t len)
 	gid_t   saved_gid = (gid_t) - 1;
 	mode_t  m;
 
-	chdiruid(chroot_path, stat_caller_ok_validator);
+	fchdiruid(chroot_fd, stat_caller_ok_validator);
 	chdiruid("dev", stat_root_ok_validator);
 
 	ch_gid(0, &saved_gid);

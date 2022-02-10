@@ -28,7 +28,8 @@ typedef enum {
 	CMD_JOB_FDS		= 1U << 2,
 	CMD_JOB_ARGUMENTS	= 1U << 3,
 	CMD_JOB_ENVIRON		= 1U << 4,
-	CMD_JOB_RUN		= 1U << 5,
+	CMD_JOB_CHROOT_FD	= 1U << 5,
+	CMD_JOB_RUN		= 1U << 6,
 } cmd_enum_t;
 
 enum {

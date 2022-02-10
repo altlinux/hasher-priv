@@ -15,6 +15,7 @@ void sanitize_fds(void);
 void cloexec_fds(void);
 int xclose(int *fd);
 
+extern int chroot_fd;
 extern int log_fd;
 
 #endif /* !HASHER_FDS_H */
