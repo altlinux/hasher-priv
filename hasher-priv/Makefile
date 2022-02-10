@@ -50,6 +50,8 @@ SRC =	\
 	chrootuid.c	\
 	cmdline.c	\
 	config.c	\
+	die.c		\
+	error_prints.c	\
 	fds.c		\
 	getconf.c	\
 	getugid.c	\
