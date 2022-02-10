@@ -41,10 +41,35 @@ CFLAGS = -pipe -O2
 override CFLAGS += $(WARNINGS)
 LDLIBS =
 
-SRC = caller.c chdir.c chdiruid.c chid.c child.c chrootuid.c cmdline.c \
-	config.c fds.c getconf.c getugid.c ipc.c killuid.c io_log.c io_x11.c \
-	main.c makedev.c mount.c net.c parent.c pass.c pty.c signal.c tty.c \
-	unshare.c xmalloc.c x11.c
+SRC =	\
+	caller.c	\
+	chdir.c		\
+	chdiruid.c	\
+	chid.c		\
+	child.c		\
+	chrootuid.c	\
+	cmdline.c	\
+	config.c	\
+	fds.c		\
+	getconf.c	\
+	getugid.c	\
+	io_log.c	\
+	io_x11.c	\
+	ipc.c		\
+	killuid.c	\
+	main.c		\
+	makedev.c	\
+	mount.c		\
+	net.c		\
+	parent.c	\
+	pass.c		\
+	pty.c		\
+	signal.c	\
+	tty.c		\
+	unshare.c	\
+	x11.c		\
+	xmalloc.c	\
+	#
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 
