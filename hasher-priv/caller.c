@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,13 +35,11 @@ init_caller_data(void)
 
 	caller_uid = getuid();
 	if (caller_uid < MIN_CHANGE_UID)
-		error(EXIT_FAILURE, 0, "caller has invalid uid: %u",
-		      caller_uid);
+		error_msg_and_die("caller has invalid uid: %u", caller_uid);
 
 	caller_gid = getgid();
 	if (caller_gid < MIN_CHANGE_GID)
-		error(EXIT_FAILURE, 0, "caller has invalid gid: %u",
-		      caller_gid);
+		error_msg_and_die("caller has invalid gid: %u", caller_gid);
 
 	if ((logname = getenv("LOGNAME")))
 		if (!*logname || strchr(logname, ':'))
@@ -58,23 +56,20 @@ init_caller_data(void)
 		pw = getpwuid(caller_uid);
 
 	if (!pw || !pw->pw_name)
-		error(EXIT_FAILURE, 0, "caller lookup failure");
+		error_msg_and_die("caller lookup failure");
 
 	caller_user = xstrdup(pw->pw_name);
 
 	if (caller_uid != pw->pw_uid)
-		error(EXIT_FAILURE, 0, "caller %s: uid mismatch",
-		      caller_user);
+		error_msg_and_die("caller %s: uid mismatch", caller_user);
 
 	if (caller_gid != pw->pw_gid)
-		error(EXIT_FAILURE, 0, "caller %s: gid mismatch",
-		      caller_user);
+		error_msg_and_die("caller %s: gid mismatch", caller_user);
 
 	errno = 0;
 	if (pw->pw_dir && *pw->pw_dir)
 		caller_home = canonicalize_file_name(pw->pw_dir);
 
 	if (!caller_home || !*caller_home)
-		error(EXIT_FAILURE, errno, "caller %s: invalid home",
-		      caller_user);
+		perror_msg_and_die("caller %s: invalid home", caller_user);
 }

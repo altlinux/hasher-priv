@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with child privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -28,16 +28,16 @@ static void
 connect_fds(int pty_fd, int pipe_out, int pipe_err)
 {
 	if (setsid() < 0)
-		error(EXIT_FAILURE, errno, "setsid");
+		perror_msg_and_die("setsid");
 
 	if (ioctl(pty_fd, (unsigned long) TIOCSCTTY, 0) < 0)
-		error(EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
+		perror_msg_and_die("ioctl TIOCSCTTY");
 
 	if (use_pty)
 	{
 		if (dup2(pty_fd, STDIN_FILENO) < 0)
-			error(EXIT_FAILURE, errno, "dup2(%d, %d)",
-			      pty_fd, STDIN_FILENO);
+			perror_msg_and_die("dup2(%d, %d)",
+					   pty_fd, STDIN_FILENO);
 	} else
 	{
 		/* redirect stdin to /dev/null if and only if
@@ -46,11 +46,13 @@ connect_fds(int pty_fd, int pipe_out, int pipe_err)
 			nullify_stdin();
 	}
 	if (dup2((use_pty ? pty_fd : pipe_out), STDOUT_FILENO) < 0)
-		error(EXIT_FAILURE, errno, "dup2(%d, %d)",
-		      (use_pty ? pty_fd : pipe_out), STDOUT_FILENO);
+		perror_msg_and_die("dup2(%d, %d)",
+				   (use_pty ? pty_fd : pipe_out),
+				   STDOUT_FILENO);
 	if (dup2((use_pty ? pty_fd : pipe_err), STDERR_FILENO) < 0)
-		error(EXIT_FAILURE, errno, "dup2(%d, %d)",
-		      (use_pty ? pty_fd : pipe_err), STDERR_FILENO);
+		perror_msg_and_die("dup2(%d, %d)",
+				   (use_pty ? pty_fd : pipe_err),
+				   STDERR_FILENO);
 
 	if (pty_fd > STDERR_FILENO)
 		close(pty_fd);
@@ -86,7 +88,7 @@ xauth_gen_fake(void)
 
 	if (fd < 0)
 	{
-		error(EXIT_SUCCESS, errno, "open: %s", PATH_DEVURANDOM);
+		perror_msg("open: %s", PATH_DEVURANDOM);
 		return 0;
 	}
 
@@ -95,7 +97,7 @@ xauth_gen_fake(void)
 	if (read_loop(fd, x11_fake_data, x11_data_len) !=
 	    (ssize_t) x11_data_len)
 	{
-		error(EXIT_SUCCESS, errno, "read: %s", PATH_DEVURANDOM);
+		perror_msg("read: %s", PATH_DEVURANDOM);
 		(void) close(fd);
 		free(x11_fake_data);
 		return 0;
@@ -137,9 +139,10 @@ xauth_add_entry(char *const *env)
 			execve(paths[i], (char *const *) av, env);
 			errors[i] = errno;
 		}
-		for (i = 0; i < ARRAY_SIZE(paths); ++i)
-			error(EXIT_SUCCESS, errors[i], "execve: %s",
-			      paths[i]);
+		for (i = 0; i < ARRAY_SIZE(paths); ++i) {
+			errno = errors[i];
+			perror_msg("execve: %s", paths[i]);
+		}
 		_exit(EXIT_FAILURE);
 	} else
 	{
@@ -169,7 +172,7 @@ handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
 	dfl_signal_handler(SIGTERM);
 
 	if (nice(change_nice) < 0)
-		error(EXIT_FAILURE, errno, "nice: %d", change_nice);
+		perror_msg_and_die("nice: %d", change_nice);
 
 	if (ctl_fd >= 0)
 	{
@@ -192,6 +195,5 @@ handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
 	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 
 	execve(chroot_argv[0], (char *const *) chroot_argv, env);
-	error(EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
-	exit(EXIT_FAILURE);
+	perror_msg_and_die("execve: %s", chroot_argv[0]);
 }

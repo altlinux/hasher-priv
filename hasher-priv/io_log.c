@@ -9,8 +9,7 @@
 
 /* Code in this file may be executed with caller privileges. */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -51,9 +50,8 @@ fd_free(const int fd)
 			break;
 
 	if (i == fd_count)
-		error(EXIT_FAILURE, 0,
-		      "fd_free: descriptor %d not found, count=%lu",
-		      fd, (unsigned long) fd_count);
+		error_msg_and_die("descriptor %d not found, count=%lu",
+				  fd, (unsigned long) fd_count);
 
 	fd_list[i] = -1;
 	(void) close(fd);

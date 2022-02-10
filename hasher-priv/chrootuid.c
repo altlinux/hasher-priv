@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -36,7 +36,7 @@ set_rlimits(void)
 			continue;
 
 		if (getrlimit(p->resource, &rlim) < 0)
-			error(EXIT_FAILURE, errno, "getrlimit: %s", p->name);
+			perror_msg_and_die("getrlimit: %s", p->name);
 
 		if (p->hard)
 			rlim.rlim_max = *(p->hard);
@@ -49,17 +49,8 @@ set_rlimits(void)
 			rlim.rlim_cur = rlim.rlim_max;
 
 		if (setrlimit(p->resource, &rlim) < 0)
-			error(EXIT_FAILURE, errno, "setrlimit: %s", p->name);
+			perror_msg_and_die("setrlimit: %s", p->name);
 	}
-}
-
-static const char *program_subname = "chrootuid";
-
-static void
-print_program_subname(void)
-{
-	fprintf(stderr, "%s: %s: ", program_invocation_short_name,
-		program_subname);
 }
 
 static int
@@ -72,10 +63,8 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	int     ctl[2] = { -1, -1 };
 	pid_t   pid;
 
-	error_print_progname = print_program_subname;
-
 	if (uid < MIN_CHANGE_UID || uid == getuid())
-		error(EXIT_FAILURE, 0, "invalid uid: %u", uid);
+		error_msg_and_die("invalid uid: %u", uid);
 
 	/*
 	 * Unshare mount namespace,
@@ -94,12 +83,12 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 
 	/* Create pipes only if use_pty is not set. */
 	if (!use_pty && (pipe(pipe_out) || pipe(pipe_err)))
-		error(EXIT_FAILURE, errno, "pipe");
+		perror_msg_and_die("pipe");
 
 	/* Create socketpair only if X11 forwarding is enabled. */
 	if (x11_prepare_connect() == EXIT_SUCCESS
 	    && socketpair(AF_UNIX, SOCK_STREAM, 0, ctl))
-		error(EXIT_FAILURE, errno, "socketpair AF_UNIX");
+		perror_msg_and_die("socketpair AF_UNIX");
 
 	unshare_ipc();
 	unshare_uts();
@@ -107,13 +96,13 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 		unshare_network();
 
 	if (setgroups(0UL, 0) < 0)
-		error(EXIT_FAILURE, errno, "setgroups");
+		perror_msg_and_die("setgroups");
 
 	/* Always create pty, necessary for ioctl TIOCSCTTY in the child. */
 	master = open_pty(&slave, 0, 1);
 
 	if (chroot(".") < 0)
-		error(EXIT_FAILURE, errno, "chroot: %s", chroot_path);
+		perror_msg_and_die("chroot: %s", chroot_path);
 
 	/* Try to create another pty inside chroot. */
 	{
@@ -126,8 +115,8 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 		}
 	}
 
-	if ( master < 0)
-		error(EXIT_FAILURE, 0, "failed to create pty");
+	if (master < 0)
+		error_msg_and_die("failed to create pty");
 
 	set_rlimits();
 
@@ -137,23 +126,25 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	block_signal_handler(SIGCHLD, SIG_BLOCK);
 
 	if ((pid = fork()) < 0)
-		error(EXIT_FAILURE, errno, "fork");
+		perror_msg_and_die("fork");
 
 	if (pid)
 	{
-		program_subname = "master";
+		program_invocation_short_name =
+			xasprintf("%s: %s",
+				  program_invocation_short_name, "parent");
 
 		if (close(slave)
 		    || (!use_pty
 			&& (close(pipe_out[1]) || close(pipe_err[1])))
 		    || (x11_display && close(ctl[1])))
-			error(EXIT_FAILURE, errno, "close");
+			perror_msg_and_die("close");
 
 		if (setgid(caller_gid) < 0)
-			error(EXIT_FAILURE, errno, "setgid");
+			perror_msg_and_die("setgid");
 
 		if (setuid(caller_uid) < 0)
-			error(EXIT_FAILURE, errno, "setuid");
+			perror_msg_and_die("setuid");
 
 		/* Process is no longer privileged at this point. */
 
@@ -161,22 +152,24 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 				     ctl[0]);
 	} else
 	{
-		program_subname = "slave";
+		program_invocation_short_name =
+			xasprintf("%s: %s",
+				  program_invocation_short_name, "child");
 
 		if (close(master)
 		    || (!use_pty
 			&& (close(pipe_out[0]) || close(pipe_err[0])))
 		    || (x11_display && close(ctl[0])))
-			error(EXIT_FAILURE, errno, "close");
+			perror_msg_and_die("close");
 
 		if (share_caller_network)
 			unshare_network();
 
 		if (setgid(gid) < 0)
-			error(EXIT_FAILURE, errno, "setgid");
+			perror_msg_and_die("setgid");
 
 		if (setuid(uid) < 0)
-			error(EXIT_FAILURE, errno, "setuid");
+			perror_msg_and_die("setuid");
 
 		/* Process is no longer privileged at this point. */
 

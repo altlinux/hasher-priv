@@ -9,11 +9,10 @@
 
 /* Code in this file may be executed with child privileges. */
 
+#include "error_prints.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
-#include <error.h>
 
 #include <sys/sem.h>
 #include <sys/shm.h>
@@ -39,7 +38,7 @@ purge_sem(uid_t uid1, uid_t uid2)
 	maxid = semctl(0, 0, SEM_INFO, arg);
 	if (maxid < 0)
 	{
-		error(EXIT_SUCCESS, errno, "semctl: SEM_INFO");
+		perror_msg("SEM_INFO");
 		return;
 	}
 
@@ -78,7 +77,7 @@ purge_shm(uid_t uid1, uid_t uid2)
 	maxid = shmctl(0, SHM_INFO, arg.buf);
 	if (maxid < 0)
 	{
-		error(EXIT_SUCCESS, errno, "shmctl: SHM_INFO");
+		perror_msg("SHM_INFO");
 		return;
 	}
 
@@ -115,7 +114,7 @@ purge_msg(uid_t uid1, uid_t uid2)
 	maxid = msgctl(0, MSG_INFO, arg.buf);
 	if (maxid < 0)
 	{
-		error(EXIT_SUCCESS, errno, "msgctl: MSG_INFO");
+		perror_msg("MSG_INFO");
 		return;
 	}
 

@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -145,8 +145,10 @@ parse_opt(const char *opt, unsigned long *flags, char **options)
 static void
 xmount(struct mnt_ent *e)
 {
-	if (e->mnt_dir[0] != '/')
-		error(EXIT_FAILURE, EINVAL, "xmount: %s", e->mnt_dir);
+	if (e->mnt_dir[0] != '/') {
+		errno = EINVAL;
+		perror_msg_and_die("%s", e->mnt_dir);
+	}
 
 	char   *options = 0, *opt;
 	char   *buf = xstrdup(e->mnt_opts);
@@ -162,7 +164,7 @@ xmount(struct mnt_ent *e)
 		 is_dev_subdir ? stat_root_ok_validator : stat_caller_ok_validator);
 
 	if (mount(e->mnt_fsname, ".", e->mnt_type, flags, options ? : ""))
-		error(EXIT_FAILURE, errno, "mount: %s", e->mnt_dir);
+		perror_msg_and_die("mount: %s", e->mnt_dir);
 
 	free(options);
 	free(buf);
@@ -181,27 +183,27 @@ load_fstab(void)
 	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
-		error(EXIT_FAILURE, errno, "open: %s", name);
+		perror_msg_and_die("open: %s", name);
 	safe_chdir("/", stat_root_ok_validator);
 
 	struct stat st;
 
 	if (fstat(fd, &st) < 0)
-		error(EXIT_FAILURE, errno, "fstat: %s", name);
+		perror_msg_and_die("fstat: %s", name);
 
 	stat_root_ok_validator(&st, name);
 
 	if (!S_ISREG(st.st_mode))
-		error(EXIT_FAILURE, 0, "%s: not a regular file", name);
+		error_msg_and_die("%s: not a regular file", name);
 
 	if (st.st_size > MAX_CONFIG_SIZE)
-		error(EXIT_FAILURE, 0, "%s: file too large: %lu",
-		      name, (unsigned long) st.st_size);
+		error_msg_and_die("%s: file too large: %lu",
+				  name, (unsigned long) st.st_size);
 
 	FILE   *fp = fdopen(fd, "r");
 
 	if (!fp)
-		error(EXIT_FAILURE, errno, "fdopen: %s", name);
+		perror_msg_and_die("fdopen: %s", name);
 
 	struct mntent *ent;
 
@@ -246,8 +248,7 @@ lookup_mount_entry(const char *mpoint)
 			e = &def_fstab[i];
 
 	if (!e)
-		error(EXIT_FAILURE, 0,
-		      "%s: mount point is not supported", mpoint);
+		error_msg_and_die("%s: mount point is not supported", mpoint);
 
 	return e;
 }
@@ -274,19 +275,18 @@ setup_mountpoints(void)
 			continue;
 
 		if (item[0] != '/' || item[1] == '/')
-			error(EXIT_FAILURE, 0,
-			      "%s: mount point is not supported", item);
+			error_msg_and_die("%s: mount point is not supported",
+					  item);
 
 		int allowed_dev = is_allowed(item, &allowed_devices);
 		int allowed_mpoint = is_allowed(item, &allowed_mountpoints);
 		if (allowed_dev && allowed_mpoint)
-			error(EXIT_FAILURE, 0,
-			      "%s: configured as device and mount point"
-			      " simultaneously", item);
+			error_msg_and_die("%s: configured as device and mount"
+					  " point simultaneously", item);
 		if (allowed_dev) {
 			if (strncmp(item, "/dev/", 5))
-				error(EXIT_FAILURE, 0,
-				      "%s: device name is not supported", item);
+				error_msg_and_die("%s: device name is not"
+						  " supported", item);
 			if (dev_size >= dev_allocated)
 				dev_vec = xgrowarray(dev_vec, &dev_allocated,
 						     sizeof(*dev_vec));
@@ -300,8 +300,8 @@ setup_mountpoints(void)
 			if (!strcmp("/dev/pts", item))
 				dev_pts_mounted = 1;
 		} else {
-			error(EXIT_FAILURE, 0,
-			      "%s: mount point is not allowed", item);
+			error_msg_and_die("%s: mount point is not allowed",
+					  item);
 		}
 	}
 
@@ -312,8 +312,7 @@ setup_mountpoints(void)
 	 */
 	if (mount("/", "/", NULL, MS_SLAVE | MS_REC, NULL) < 0 &&
 	    errno != EINVAL)
-		error(EXIT_FAILURE, errno,
-		      "mount MS_SLAVE: %s", chroot_path);
+		perror_msg_and_die("mount MS_SLAVE: %s", chroot_path);
 
 	load_fstab();
 

@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root or caller privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -84,7 +84,7 @@ cloexec_range_brutely(int from, int to)
 		int     newflags = flags | FD_CLOEXEC;
 
 		if (flags != newflags && fcntl(from, F_SETFD, newflags))
-			error(EXIT_FAILURE, errno, "fcntl F_SETFD");
+			perror_msg_and_die("fcntl F_SETFD");
 	}
 }
 
@@ -98,8 +98,8 @@ reorder_fd(int start_fd, int *target_fdp)
 
 	if (*target_fdp > start_fd) {
 		if (dup2(*target_fdp, start_fd) != start_fd) {
-			error(EXIT_FAILURE, errno, "dup2(%d, %d)",
-			      *target_fdp, start_fd);
+			perror_msg_and_die("dup2(%d, %d)",
+					   *target_fdp, start_fd);
 		}
 		/* Old *target_fdp will be closed by close_range. */
 		*target_fdp = start_fd;
@@ -132,7 +132,7 @@ sanitize_fds(void)
 
 		if (fstat(fd, &st) < 0)
 			/* At this stage, we shouldn't even report error. */
-			exit(EXIT_FAILURE);
+			die();
 	}
 
 	/* Reorder descriptors that should be kept open. */
@@ -167,15 +167,15 @@ nullify_stdin(void)
 	int pipe_fds[2];
 
 	if (pipe(pipe_fds))
-		error(EXIT_FAILURE, errno, "pipe");
+		perror_msg_and_die("pipe");
 	if (close(pipe_fds[1]))
-		error(EXIT_FAILURE, errno, "close");
+		perror_msg_and_die("close");
 
 	if (pipe_fds[0] != STDIN_FILENO) {
 		if (dup2(pipe_fds[0], STDIN_FILENO) != STDIN_FILENO)
-			error(EXIT_FAILURE, errno, "dup2");
+			perror_msg_and_die("dup2");
 		if (close(pipe_fds[0]))
-			error(EXIT_FAILURE, errno, "close");
+			perror_msg_and_die("close");
 	}
 
 	/*
@@ -192,12 +192,12 @@ unblock_fd(int fd)
 	int     flags;
 
 	if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
-		error(EXIT_FAILURE, errno, "fcntl F_GETFL");
+		perror_msg_and_die("fcntl F_GETFL");
 
 	int     newflags = flags | O_NONBLOCK;
 
 	if (flags != newflags && fcntl(fd, F_SETFL, newflags) < 0)
-		error(EXIT_FAILURE, errno, "fcntl F_SETFL");
+		perror_msg_and_die("fcntl F_SETFL");
 }
 
 /* This function may be executed with caller privileges. */

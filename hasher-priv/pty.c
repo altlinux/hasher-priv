@@ -8,8 +8,7 @@
 
 /* Code in this file is executed with root privileges. */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -56,15 +55,14 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	if (ptmx < 0)
 	{
 		if (verbose_error)
-			error(EXIT_SUCCESS, errno, "open: %s", dev_ptmx);
+			perror_msg("open: %s", dev_ptmx);
 		goto err;
 	}
 
 	if (ioctl(ptmx, TIOCGPTN, &num))
 	{
 		if (verbose_error)
-			error(EXIT_SUCCESS, errno,
-			      "ioctl: %s: TIOCGPTN", dev_ptmx);
+			perror_msg("ioctl TIOCGPTN: %s", dev_ptmx);
 		goto err;
 	}
 
@@ -75,8 +73,7 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	if (ioctl(ptmx, TIOCSPTLCK, &num))
 	{
 		if (verbose_error)
-			error(EXIT_SUCCESS, errno,
-			      "ioctl: %s: TIOCSPTLCK", dev_ptmx);
+			perror_msg("ioctl TIOCSPTLCK: %s", dev_ptmx);
 		goto err;
 	}
 #endif
@@ -85,7 +82,7 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	if (slave < 0)
 	{
 		if (verbose_error)
-			error(EXIT_SUCCESS, errno, "open: %s", ptsname);
+			perror_msg("open: %s", ptsname);
 		goto err;
 	}
 
@@ -98,7 +95,7 @@ err:
 out:
 	free(ptsname);
 	if (chrooted && chdir("/"))
-		error(EXIT_FAILURE, errno, "chdir: %s", "/");
+		perror_msg_and_die("chdir: %s", "/");
 	ch_uid(saved_uid, 0);
 	ch_gid(saved_gid, 0);
 	*slave_fd = slave;

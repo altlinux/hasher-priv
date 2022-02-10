@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with caller or child privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -60,16 +60,15 @@ fd_send(int ctl, int pass, const char *data, size_t data_len)
 	{
 		if (rc < 0)
 		{
-			error(EXIT_FAILURE, errno, "sendmsg");
+			perror_msg_and_die("sendmsg");
 		} else
 		{
 			if (rc)
-				error(EXIT_FAILURE, 0,
-				      "sendmsg: expected size %u, got %u",
-				      (unsigned) data_len, (unsigned) rc);
+				error_msg_and_die("expected size %u, got %u",
+						  (unsigned int) data_len,
+						  (unsigned int) rc);
 			else
-				error(EXIT_FAILURE, 0,
-				      "sendmsg: unexpected EOF");
+				error_msg_and_die("unexpected EOF");
 		}
 	}
 }
@@ -101,31 +100,30 @@ fd_recv(int ctl, char *data, size_t data_len)
 	{
 		if (rc < 0)
 		{
-			error(EXIT_SUCCESS, errno, "recvmsg");
+			perror_msg("recvmsg");
 			fputc('\r', stderr);
 		} else
 		{
 			if (rc)
-				error(EXIT_SUCCESS, 0,
-				      "recvmsg: expected size %u, got %u\r",
-				      (unsigned) data_len, (unsigned) rc);
+				error_msg("expected size %u, got %u\r",
+					  (unsigned int) data_len,
+					  (unsigned int) rc);
 			else
-				error(EXIT_SUCCESS, 0,
-				      "recvmsg: unexpected EOF\r");
+				error_msg("unexpected EOF\r");
 		}
 		return -1;
 	}
 
 	if (!(cmsg = CMSG_FIRSTHDR(&msg)))
 	{
-		error(EXIT_SUCCESS, 0, "recvmsg: no message header\r");
+		error_msg("no message header\r");
 		return -1;
 	}
 
 	if (cmsg->cmsg_type != SCM_RIGHTS)
 	{
-		error(EXIT_SUCCESS, 0, "recvmsg: expected type %u, got %u\r",
-		      SCM_RIGHTS, cmsg->cmsg_type);
+		error_msg("expected type %u, got %u\r",
+			  SCM_RIGHTS, cmsg->cmsg_type);
 		return -1;
 	}
 

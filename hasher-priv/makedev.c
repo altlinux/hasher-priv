@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <stdlib.h>
@@ -26,21 +26,21 @@ static void
 xmknod(const char *name, mode_t mode, unsigned major, unsigned minor)
 {
 	if (mknod(name, mode, makedev(major, minor)))
-		error(EXIT_FAILURE, errno, "mknod: %s", name);
+		perror_msg_and_die("%s", name);
 }
 
 static void
 xmkdir(const char *name, mode_t mode)
 {
 	if (mkdir(name, mode))
-		error(EXIT_FAILURE, errno, "mkdir: %s", name);
+		perror_msg_and_die("%s", name);
 }
 
 static void
 xsymlink(const char *target, const char *linkpath)
 {
 	if (symlink(target, linkpath))
-		error(EXIT_FAILURE, errno, "symlink: %s", linkpath);
+		perror_msg_and_die("%s", linkpath);
 }
 
 static void
@@ -50,7 +50,7 @@ make_parent_directories(const char *name)
 	for (char *p = dir; (p = strchr(p, '/')); ++p) {
 		*p = '\0';
 		if (mkdir(dir, 0755) && errno != EEXIST)
-			error(EXIT_FAILURE, errno, "mkdir: %s", dir);
+			perror_msg_and_die("%s", dir);
 		*p = '/';
 	}
 	free(dir);
@@ -64,16 +64,16 @@ copy_dev(const char *src)
 	const char *name = src + prefix_len;
 
 	if (strncmp(src, prefix, prefix_len) || !*name)
-		error(EXIT_FAILURE, 0, "%s: invalid device name", src);
+		error_msg_and_die("%s: invalid device name", src);
 
 	/* Copy device characteristics from the source device file.  */
 	struct stat st;
 	if (stat(src, &st))
-		error(EXIT_FAILURE, errno, "stat: %s", src);
+		perror_msg_and_die("stat: %s", src);
 
 	mode_t dev_mode = st.st_mode & (S_IFCHR|S_IFBLK);
 	if (!dev_mode)
-		error(EXIT_FAILURE, errno, "%s: not a device", src);
+		error_msg_and_die("%s: not a device", src);
 
 	/*
 	 * Deduce access mode for the new device file from access mode

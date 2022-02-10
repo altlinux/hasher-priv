@@ -9,8 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
-#include <error.h>
-#include <errno.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -31,23 +30,23 @@ do_killuid(void)
 	uid_t u = getuid();
 
 	if (change_uid1 < MIN_CHANGE_UID || change_uid1 == u)
-		error(EXIT_FAILURE, 0, "killuid: invalid uid: %u", change_uid1);
+		error_msg_and_die("invalid uid: %u", change_uid1);
 	if (change_uid2 < MIN_CHANGE_UID || change_uid2 == u)
-		error(EXIT_FAILURE, 0, "killuid: invalid uid: %u", change_uid2);
+		error_msg_and_die("invalid uid: %u", change_uid2);
 
 	if (prctl(PR_SET_DUMPABLE, 0) && !__libc_enable_secure)
-		error(EXIT_FAILURE, errno, "killuid: prctl PR_SET_DUMPABLE");
+		perror_msg_and_die("prctl PR_SET_DUMPABLE");
 
 	if (setreuid(change_uid1, change_uid2) < 0)
-		error(EXIT_FAILURE, errno, "killuid: setreuid");
+		perror_msg_and_die("setreuid");
 
 	if (kill(-1, SIGKILL))
-		error(EXIT_FAILURE, errno, "killuid: kill");
+		perror_msg_and_die("kill");
 
 	purge_ipc(change_uid1, change_uid2);
 
 	if (setreuid(change_uid2, change_uid1) < 0)
-		error(EXIT_FAILURE, errno, "killuid: setreuid");
+		perror_msg_and_die("setreuid");
 
 	purge_ipc(change_uid1, change_uid2);
 

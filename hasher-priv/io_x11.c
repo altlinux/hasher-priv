@@ -9,8 +9,7 @@
 
 /* Code in this file may be executed with caller privileges. */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -64,9 +63,8 @@ io_x11_free(io_x11_t io)
 		if (io_x11_list[i] == io)
 			break;
 	if (i == io_x11_count)
-		error(EXIT_FAILURE, 0,
-		      "io_x11_free: entry %p not found, count=%lu", io,
-		      (unsigned long) io_x11_count);
+		error_msg_and_die("entry %p not found, count=%lu",
+				  io, (unsigned long) io_x11_count);
 	io_x11_list[i] = 0;
 
 	(void) close(io->master_fd);
@@ -130,9 +128,8 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 
 	if (avail < expected)
 	{
-		error(EXIT_SUCCESS, 0,
-		      "Initial X11 packet too short, expected length = %lu\r",
-		      (unsigned long) expected);
+		error_msg("Initial X11 packet too short, expected length = %lu\r",
+			  (unsigned long) expected);
 		return;
 	}
 	unsigned proto_len = 0, data_len = 0;
@@ -148,9 +145,8 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 		data_len = (unsigned) (p[8] | (p[9] << 8));
 	} else
 	{
-		error(EXIT_SUCCESS, 0,
-		      "Initial X11 packet contains unrecognized order byte: %#x\r",
-		      p[0]);
+		error_msg("Initial X11 packet contains unrecognized order byte: %#x\r",
+			  p[0]);
 		return;
 	}
 
@@ -159,9 +155,8 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 		((data_len + 3) & (unsigned) ~3);
 	if (avail < expected)
 	{
-		error(EXIT_SUCCESS, 0,
-		      "Initial X11 packet too short, expected length = %lu\r",
-		      (unsigned long) expected);
+		error_msg("Initial X11 packet too short, expected length = %lu\r",
+			  (unsigned long) expected);
 		return;
 	}
 
@@ -172,8 +167,7 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 	    memcmp(p + 12 + ((proto_len + 3) & (unsigned) ~3),
 		   x11_fake_data, x11_data_len) != 0)
 	{
-		error(EXIT_SUCCESS, 0,
-		      "X11 auth data does not match fake data\r");
+		error_msg("X11 auth data does not match fake data\r");
 		return;
 	}
 

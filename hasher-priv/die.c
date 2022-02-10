@@ -5,8 +5,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdlib.h>
 #include "error_prints.h"
+#include <stdlib.h>
 
 void
 die(void)

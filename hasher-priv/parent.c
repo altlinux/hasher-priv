@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with caller privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -59,7 +59,7 @@ sigchld_handler(int __attribute__ ((unused)) signo)
 	child_pid = 0;
 
 	if (waitpid(child, &status, 0) != child)
-		error(EXIT_FAILURE, errno, "waitpid");
+		perror_msg_and_die("waitpid");
 
 	if (WIFEXITED(status))
 	{
@@ -101,15 +101,14 @@ wait_child(void)
 			usleep(100000);
 }
 
-static void __attribute__ ((noreturn, format(printf, 1, 0)))
-limit_exceeded(const char *fmt, unsigned long limit)
-{
-	forget_child();
-	restore_tty();
-	fputc('\n', stderr);
-	error(128 + SIGTERM, 0, fmt, limit);
-	exit(128 + SIGTERM);
-}
+#define limit_exceeded(...)		\
+	do {				\
+		forget_child();		\
+		restore_tty();		\
+		fputc('\n', stderr);	\
+		error_msg(__VA_ARGS__);	\
+		exit(128 + SIGTERM);	\
+	} while (0)
 
 static int
 work_limits_ok(unsigned long bytes_read, unsigned long bytes_written)
@@ -174,8 +173,7 @@ handle_x11_ctl(void)
 
 		if (sscanf(x11_key + 2 * i, "%2x", &value) != 1)
 		{
-			error(EXIT_SUCCESS, 0,
-			      "Invalid X11 authentication data\r");
+			error_msg("Invalid X11 authentication data\r");
 			free(x11_saved_data);
 			x11_saved_data = 0;
 			return -1;
@@ -191,8 +189,7 @@ handle_x11_ctl(void)
 
 	if (!memcmp(x11_saved_data, x11_fake_data, x11_data_len))
 	{
-		error(EXIT_SUCCESS, 0,
-		      "Invalid X11 fake authentication data\r");
+		error_msg("Invalid X11 fake authentication data\r");
 		free(x11_saved_data);
 		free(x11_fake_data);
 		x11_saved_data = x11_fake_data = 0;
@@ -332,7 +329,7 @@ handle_io(io_std_t io)
 		if ((x11_fd = handle_x11_ctl()) < 0)
 		{
 			x11_closedir();
-			error(EXIT_SUCCESS, 0, "X11 forwarding disabled\r");
+			error_msg("X11 forwarding disabled\r");
 		}
 		(void) close(ctl_fd);
 		ctl_fd = -1;
@@ -345,7 +342,7 @@ void
 xwrite_all(int fd, const char *buffer, size_t count)
 {
 	if (write_loop(fd, buffer, count) != (ssize_t) count)
-		error(EXIT_FAILURE, errno, "write");
+		perror_msg_and_die("write");
 
 	total_bytes_written += count;
 }
@@ -366,7 +363,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = (int) (SA_NOCLDSTOP | SA_RESETHAND);
 	if (sigaction(SIGCHLD, &act, 0))
-		error(EXIT_FAILURE, errno, "sigaction");
+		perror_msg_and_die("sigaction");
 
 	signal(SIGPIPE, SIG_IGN);
 
@@ -393,7 +390,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 		sigemptyset(&act.sa_mask);
 		act.sa_flags = SA_RESTART;
 		if (sigaction(SIGWINCH, &act, 0))
-			error(EXIT_FAILURE, errno, "sigaction");
+			perror_msg_and_die("sigaction");
 	}
 
 	while (work_limits_ok(total_bytes_read, total_bytes_written))

@@ -7,8 +7,7 @@
   SPDX-License-Identifier: GPL-2.0-or-later
 */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -48,7 +47,7 @@ chdiruid_simple(const char *path, VALIDATE_FPTR validator)
 	char   *cwd;
 
 	if (!(cwd = getcwd(0, 0UL)))
-		error(EXIT_FAILURE, errno, "getcwd");
+		perror_msg_and_die("getcwd");
 
 	/* Check for chroot prefix path. */
 	const char *const *prefix;
@@ -64,9 +63,10 @@ chdiruid_simple(const char *path, VALIDATE_FPTR validator)
 	}
 
 	if (invalid)
-		error(EXIT_FAILURE, 0,
-		      "%s: prefix mismatch, working directory should start with one of directories listed in colon-separated prefix list (%s)",
-		      cwd, chroot_prefix_path);
+		error_msg_and_die("%s: prefix mismatch, working directory"
+				  " should start with one of directories"
+				  " listed in colon-separated prefix list (%s)",
+			cwd, chroot_prefix_path);
 
 	free(cwd);
 }
@@ -86,12 +86,12 @@ chdiruid(const char *path, VALIDATE_FPTR validator)
 	gid_t   saved_gid = (gid_t) - 1;
 
 	if (!path)
-		error(EXIT_FAILURE, 0, "chdiruid: invalid chroot path");
+		error_msg_and_die("invalid chroot path");
 
 	/* Set credentials. */
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
 	if (initgroups(caller_user, caller_gid) < 0)
-		error(EXIT_FAILURE, errno, "chdiruid: initgroups: %s", caller_user);
+		perror_msg_and_die("initgroups: %s", caller_user);
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
 	ch_gid(caller_gid, &saved_gid);
 	ch_uid(caller_uid, &saved_uid);
@@ -112,6 +112,6 @@ chdiruid(const char *path, VALIDATE_FPTR validator)
 	ch_gid(saved_gid, 0);
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
 	if (setgroups(0UL, 0) < 0)
-		error(EXIT_FAILURE, errno, "chdiruid: setgroups");
+		perror_msg_and_die("setgroups");
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
 }

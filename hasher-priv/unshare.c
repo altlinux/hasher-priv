@@ -8,8 +8,8 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <sched.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,12 +40,14 @@ do_unshare(int clone_flags, const char *clone_name,
 	if (unshare(clone_flags) < 0)
 	{
 		if (errno == ENOSYS || errno == EINVAL || errno == EPERM) {
-			error(share_flag ? EXIT_SUCCESS : EXIT_FAILURE, errno,
-			      "%s isolation is not supported by the kernel",
-			      share_name);
-			return -1;
+			perror_msg("%s isolation is not supported by the kernel",
+				   share_name);
+			if (share_flag)
+				return -1;
+			else
+				die();
 		}
-		error(EXIT_FAILURE, errno, "unshare %s", clone_name);
+		perror_msg_and_die("%s", clone_name);
 	}
 	return 0;
 }
@@ -83,5 +85,5 @@ unshare_uts(void)
 		return;
 
 	if (sethostname(name, strlen(name)) < 0)
-		error(EXIT_FAILURE, errno, "sethostname: %s", name);
+		perror_msg_and_die("sethostname: %s", name);
 }

@@ -7,8 +7,8 @@
   SPDX-License-Identifier: GPL-2.0-or-later
 */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,22 +49,24 @@ safe_chdir_simple(const char *name, VALIDATE_FPTR validator)
 	const char *what;
 
 	if (lstat(name, &st1) < 0)
-		error(EXIT_FAILURE, errno, "lstat: %s", name);
+		perror_msg_and_die("lstat: %s", name);
 
-	if (!S_ISDIR(st1.st_mode))
-		error(EXIT_FAILURE, ENOTDIR, "%s", name);
+	if (!S_ISDIR(st1.st_mode)) {
+		errno = ENOTDIR;
+		perror_msg_and_die("%s", name);
+	}
 
 	validator(&st1, name);
 
 	if (chdir(name) < 0)
-		error(EXIT_FAILURE, errno, "chdir: %s", name);
+		perror_msg_and_die("chdir: %s", name);
 
 	if (lstat(".", &st2) < 0)
-		error(EXIT_FAILURE, errno, "lstat: %s", name);
+		perror_msg_and_die("lstat: %s", name);
 
 	if ((what = is_changed(&st1, &st2)))
-		error(EXIT_FAILURE, 0, "%s: %s changed during execution",
-		      name, what);
+		error_msg_and_die("%s: %s changed during execution",
+				  name, what);
 }
 
 /*
@@ -100,19 +102,17 @@ void
 stat_caller_ok_validator(struct stat *st, const char *name)
 {
 	if (st->st_uid != caller_uid)
-		error(EXIT_FAILURE, 0,
-		      "%s: expected owner %u, found owner %u",
-		      name, caller_uid, st->st_uid);
+		error_msg_and_die("%s: expected owner %u, found owner %u",
+				  name, caller_uid, st->st_uid);
 
 	if (st->st_gid != change_gid1)
-		error(EXIT_FAILURE, 0,
-		      "%s: expected group %u, found group %u",
-		      name, change_gid1, st->st_gid);
+		error_msg_and_die("%s: expected group %u, found group %u",
+				  name, change_gid1, st->st_gid);
 
 	if ((st->st_mode & S_IWOTH)
 	    || ((st->st_mode & S_IWGRP) && !(st->st_mode & S_ISVTX)))
-		error(EXIT_FAILURE, 0,
-		      "%s: bad perms: %o", name, st->st_mode & 07777);
+		error_msg_and_die("%s: bad perms: %o",
+				  name, st->st_mode & 07777);
 }
 
 /*
@@ -125,9 +125,9 @@ void
 stat_root_ok_validator(struct stat *st, const char *name)
 {
 	if (st->st_uid)
-		error(EXIT_FAILURE, 0, "%s: bad owner: %u", name, st->st_uid);
+		error_msg_and_die("%s: bad owner: %u", name, st->st_uid);
 
 	if (st->st_mode & (S_IWGRP | S_IWOTH))
-		error(EXIT_FAILURE, 0, "%s: bad perms: %o", name,
-		      st->st_mode & 07777);
+		error_msg_and_die("%s: bad perms: %o",
+				  name, st->st_mode & 07777);
 }

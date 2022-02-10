@@ -7,8 +7,7 @@
   SPDX-License-Identifier: GPL-2.0-or-later
 */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,7 +32,7 @@ ch_uid(uid_t uid, uid_t *save)
 	if (save)
 		*save = tmp;
 	if ((uid_t) setfsuid(uid) != uid)
-		error(EXIT_FAILURE, 0, "failed to change fsuid to %u", uid);
+		error_msg_and_die("failed to change fsuid to %u", uid);
 }
 
 /* This function may be executed with root privileges. */
@@ -45,7 +44,7 @@ ch_gid(gid_t gid, gid_t *save)
 	if (save)
 		*save = tmp;
 	if ((gid_t) setfsgid(gid) != gid)
-		error(EXIT_FAILURE, 0, "failed to change fsgid to %u", gid);
+		error_msg_and_die("failed to change fsgid to %u", gid);
 }
 
 #else /* ! ENABLE_SETFSUGID */
@@ -57,7 +56,7 @@ ch_uid(uid_t uid, uid_t *save)
 	if (save)
 		*save = geteuid();
 	if (setresuid((uid_t)-1, uid, 0) < 0)
-		error(EXIT_FAILURE, errno, "failed to change euid to %u", uid);
+		perror_msg_and_die("failed to change euid to %u", uid);
 }
 
 /* This function may be executed with root privileges. */
@@ -67,7 +66,7 @@ ch_gid(gid_t gid, gid_t *save)
 	if (save)
 		*save = getegid();
 	if (setresgid((gid_t)-1, gid, 0) < 0)
-		error(EXIT_FAILURE, errno, "failed to change egid to %u", gid);
+		perror_msg_and_die("failed to change egid to %u", gid);
 }
 
 #endif /* ENABLE_SETFSUGID */

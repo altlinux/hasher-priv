@@ -1,5 +1,4 @@
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -24,7 +23,7 @@ setup_network(void)
 
 	rtnetlink_sk = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
 	if (rtnetlink_sk < 0)
-		error(EXIT_FAILURE, errno, "socket AF_NETLINK NETLINK_ROUTE");
+		perror_msg_and_die("socket");
 
 	memset(&req, 0, sizeof(req));
 	req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
@@ -38,8 +37,8 @@ setup_network(void)
 	req.i.ifi_change = IFF_UP;
 
 	if (send(rtnetlink_sk, &req, req.n.nlmsg_len, 0) < 0)
-		error(EXIT_FAILURE, errno, "send AF_NETLINK RTM_NEWLINK");
+		perror_msg_and_die("send");
 
 	if (close(rtnetlink_sk) < 0)
-		error(EXIT_FAILURE, errno, "close AF_NETLINK");
+		perror_msg_and_die("close");
 }

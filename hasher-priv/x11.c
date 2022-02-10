@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root, caller or child privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -42,20 +42,20 @@ unix_listen(const char *file_name)
 
 	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
-		error(EXIT_SUCCESS, errno, "socket AF_UNIX");
+		perror_msg("socket");
 		return -1;
 	}
 
 	if (bind(fd, (struct sockaddr *) &sun, (socklen_t) sizeof sun))
 	{
-		error(EXIT_SUCCESS, errno, "bind: %s", sun.sun_path);
+		perror_msg("bind: %s", sun.sun_path);
 		(void) close(fd);
 		return -1;
 	}
 
 	if (listen(fd, 16) < 0)
 	{
-		error(EXIT_SUCCESS, errno, "listen: %s", sun.sun_path);
+		perror_msg("listen: %s", sun.sun_path);
 		(void) close(fd);
 		return -1;
 	}
@@ -73,7 +73,7 @@ log_listen(void)
 	int     fd = unix_listen(log_path);
 
 	if (fd >= 0 && chmod(log_path, 0622)) {
-		error(EXIT_SUCCESS, errno, "chmod: %s", log_path);
+		perror_msg("chmod: %s", log_path);
 		(void) close(fd);
 		fd = -1;
 	}
@@ -89,11 +89,11 @@ x11_listen(void)
 	static const char x11_path[] = X11_UNIX_DIR "/X10";
 
 	if (mkdir(X11_UNIX_DIR, 0700) && errno != EEXIST) {
-		error(EXIT_SUCCESS, errno, "mkdir: %s", X11_UNIX_DIR);
+		perror_msg("mkdir: %s", X11_UNIX_DIR);
 		return -1;
 	}
 	if (unlink(x11_path) && errno != ENOENT) {
-		error(EXIT_SUCCESS, errno, "unlink: %s", x11_path);
+		perror_msg("unlink: %s", x11_path);
 		return -1;
 	}
 	return unix_listen(x11_path);
@@ -125,14 +125,14 @@ x11_connect_unix( __attribute__ ((unused))
 	{
 		if (fchdir(x11_dir_fd))
 		{
-			error(EXIT_SUCCESS, errno, "fchdir (%d)", x11_dir_fd);
+			perror_msg("fchdir (%d)", x11_dir_fd);
 			fputc('\r', stderr);
 			break;
 		}
 
 		if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 		{
-			error(EXIT_SUCCESS, errno, "socket AF_UNIX");
+			perror_msg("socket");
 			fputc('\r', stderr);
 			break;
 		}
@@ -148,7 +148,7 @@ x11_connect_unix( __attribute__ ((unused))
 		    (fd, (struct sockaddr *) &sun, (socklen_t) sizeof sun))
 			break;
 
-		error(EXIT_SUCCESS, errno, "connect: %s", sun.sun_path);
+		perror_msg("connect: %s", sun.sun_path);
 		fputc('\r', stderr);
 		close(fd);
 		fd = -1;
@@ -156,7 +156,7 @@ x11_connect_unix( __attribute__ ((unused))
 	}
 	if (chdir("/"))
 	{
-		error(EXIT_SUCCESS, errno, "chdir: /");
+		perror_msg("chdir: /");
 		fputc('\r', stderr);
 	}
 	return fd;
@@ -179,8 +179,7 @@ x11_connect_inet(const char *name, unsigned display_number)
 
 	if ((rc = getaddrinfo(name, port_str, &hints, &ai_start)) != 0)
 	{
-		error(EXIT_SUCCESS, errno, "getaddrinfo: %s:%u", name,
-		      port_num);
+		perror_msg("getaddrinfo: %s:%u", name, port_num);
 		fputc('\r', stderr);
 		return -1;
 	}
@@ -208,8 +207,8 @@ x11_connect_inet(const char *name, unsigned display_number)
 	freeaddrinfo(ai_start);
 	if (fd < 0)
 	{
-		error(EXIT_SUCCESS, saved_errno, "connect: %s:%u",
-		      name, port_num);
+		errno = saved_errno;
+		perror_msg("connect: %s:%u", name, port_num);
 		fputc('\r', stderr);
 	}
 
@@ -238,7 +237,7 @@ unix_accept(int fd)
 
 	if (rc < 0)
 	{
-		error(EXIT_SUCCESS, errno, "accept");
+		perror_msg("accept");
 		fputc('\r', stderr);
 	}
 
@@ -256,7 +255,7 @@ x11_check_listen(int fd)
 	memset(&sun, 0, sizeof sun);
 	if (getsockname(fd, (struct sockaddr *) &sun, &len))
 	{
-		error(EXIT_SUCCESS, errno, "getsockname");
+		perror_msg("getsockname");
 		fputc('\r', stderr);
 		(void) close(fd);
 		return -1;
@@ -264,9 +263,8 @@ x11_check_listen(int fd)
 
 	if (sun.sun_family != AF_UNIX)
 	{
-		error(EXIT_SUCCESS, 0,
-		      "getsockname: expected type %u, got %u\r", AF_UNIX,
-		      sun.sun_family);
+		error_msg("getsockname: expected type %u, got %u\r",
+			  AF_UNIX, sun.sun_family);
 		return -1;
 	}
 
@@ -275,8 +273,8 @@ x11_check_listen(int fd)
 	snprintf(path, sizeof path, "%s/%s", X11_UNIX_DIR, "X10");
 	if (strcmp(path, sun.sun_path))
 	{
-		error(EXIT_SUCCESS, 0, "getsockname: path %s, got %*s\r",
-		      path, (unsigned) sizeof path, sun.sun_path);
+		error_msg("getsockname: path %s, got %*s\r",
+			  path, (unsigned) sizeof path, sun.sun_path);
 		return -1;
 	}
 
@@ -298,9 +296,8 @@ x11_parse_display(void)
 	char *number = strrchr(display, ':');
 	if (!number)
 	{
-		error(EXIT_SUCCESS, 0,
-		      "Unrecognized DISPLAY=%s, X11 forwarding disabled",
-		      display);
+		error_msg("Unrecognized DISPLAY=%s, X11 forwarding disabled",
+			  display);
 		return EXIT_FAILURE;
 	}
 
@@ -313,9 +310,8 @@ x11_parse_display(void)
 	x11_connect_port = strtoul(number, &endp, 10);
 	if (!endp || (*endp && *endp != '.') || x11_connect_port > 100)
 	{
-		error(EXIT_SUCCESS, 0,
-		      "Unrecognized DISPLAY=%s, X11 forwarding disabled",
-		      display);
+		error_msg("Unrecognized DISPLAY=%s, X11 forwarding disabled",
+			  display);
 		return EXIT_FAILURE;
 	}
 
@@ -362,8 +358,8 @@ x11_prepare_connect(void)
 	if (x11_connect_method == x11_connect_unix &&
 	    (x11_dir_fd = open(X11_UNIX_DIR, O_RDONLY)) < 0)
 	{
-		error(EXIT_SUCCESS, errno, "open: %s", X11_UNIX_DIR);
-		error(EXIT_SUCCESS, 0, "X11 forwarding disabled");
+		perror_msg("open: %s", X11_UNIX_DIR);
+		error_msg("X11 forwarding disabled");
 		x11_drop_display();
 		return EXIT_FAILURE;
 	}

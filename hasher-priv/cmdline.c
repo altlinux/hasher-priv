@@ -9,9 +9,9 @@
 
 /* Code in this file may be executed with root privileges. */
 
-#include <stdio.h>
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>

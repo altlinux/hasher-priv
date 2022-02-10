@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "error_prints.h"
 #include <errno.h>
-#include <error.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -106,17 +106,14 @@ work_limit_t wlimit;
 static void __attribute__ ((noreturn))
 bad_option_name(const char *optname, const char *filename)
 {
-	error(EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
-	      optname);
-	exit(EXIT_FAILURE);
+	error_msg_and_die("%s: unrecognized option: %s", filename, optname);
 }
 
 static void __attribute__ ((noreturn))
 bad_option_value(const char *optname, const char *value, const char *filename)
 {
-	error(EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
-	      filename, optname, value);
-	exit(EXIT_FAILURE);
+	error_msg_and_die("%s: invalid value for \"%s\" option: %s",
+			  filename, optname, value);
 }
 
 static  mode_t
@@ -298,9 +295,8 @@ str2bool(const char *name, const char *value, const char *filename)
 	    || !strcasecmp(value, "1"))
 		return 1;
 
-	error(EXIT_FAILURE, 0,
-	      "%s: invalid value \"%s\" for \"%s\" option", filename,
-	      value, name);
+	error_msg_and_die("%s: invalid value \"%s\" for \"%s\" option",
+			  filename, value, name);
 	return 0;
 }
 
@@ -322,9 +318,8 @@ parse_prefix(const char *name, const char *value, const char *filename)
 	if (prefix[0] == '\0' || prefix[0] == '/')
 		return prefix;
 
-	error(EXIT_FAILURE, 0,
-	      "%s: invalid value \"%s\" for \"%s\" option", filename,
-	      value, name);
+	error_msg_and_die("%s: invalid value \"%s\" for \"%s\" option",
+			  filename, value, name);
 	return 0;
 }
 
@@ -418,8 +413,8 @@ read_config(FILE *fp, const char *name)
 			continue;
 
 		if (!(eq = strchr(start, '=')))
-			error(EXIT_FAILURE, 0, "%s: syntax error at line %u",
-			      name, line);
+			error_msg_and_die("%s: syntax error at line %u",
+					  name, line);
 
 		left = start;
 		right = eq + 1;
@@ -429,8 +424,8 @@ read_config(FILE *fp, const char *name)
 				break;
 
 		if (left == eq)
-			error(EXIT_FAILURE, 0, "%s: syntax error at line %u",
-			      name, line);
+			error_msg_and_die("%s: syntax error at line %u",
+					  name, line);
 
 		*eq = '\0';
 		end = right + strlen(right);
@@ -448,7 +443,7 @@ read_config(FILE *fp, const char *name)
 	}
 
 	if (ferror(fp))
-		error(EXIT_FAILURE, errno, "fgets: %s", name);
+		perror_msg_and_die("fgets: %s", name);
 }
 
 static void
@@ -458,28 +453,29 @@ load_config(const char *name)
 	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
-		error(EXIT_FAILURE, errno, "open: %s", name);
+		perror_msg_and_die("open: %s", name);
 
 	if (fstat(fd, &st) < 0)
-		error(EXIT_FAILURE, errno, "fstat: %s", name);
+		perror_msg_and_die("fstat: %s", name);
 
 	stat_root_ok_validator(&st, name);
 
 	if (!S_ISREG(st.st_mode))
-		error(EXIT_FAILURE, 0, "%s: not a regular file", name);
+		error_msg_and_die("%s: not a regular file", name);
 
 	if (st.st_size > MAX_CONFIG_SIZE)
-		error(EXIT_FAILURE, 0, "%s: file too large: %lu",
-		      name, (unsigned long) st.st_size);
+		error_msg_and_die("%s: file too large: %lu",
+				  name, (unsigned long) st.st_size);
 
 	FILE *fp = fdopen(fd, "r");
 	if (!fp)
-		error(EXIT_FAILURE, errno, "fdopen: %s", name);
+		perror_msg_and_die("fdopen: %s", name);
+
 
 	read_config(fp, name);
 
 	if (fclose(fp))
-		error(EXIT_FAILURE, errno, "fclose: %s", name);
+		perror_msg_and_die("fclose: %s", name);
 }
 
 static void
@@ -489,42 +485,39 @@ check_user(const char *user_name, uid_t * user_uid, gid_t * user_gid,
 	struct passwd *pw;
 
 	if (!user_name || !*user_name)
-		error(EXIT_FAILURE, 0, "config: undefined: %s", name);
+		error_msg_and_die("config: undefined: %s", name);
 
 	pw = getpwnam(user_name);
 
 	if (!pw || !pw->pw_name)
-		error(EXIT_FAILURE, 0, "config: %s: %s lookup failure",
-		      name, user_name);
+		error_msg_and_die("config: %s: %s lookup failure",
+				  name, user_name);
 
 	if (strcmp(user_name, pw->pw_name))
-		error(EXIT_FAILURE, 0, "config: %s: %s: name mismatch", name,
-		      user_name);
+		error_msg_and_die("config: %s: %s: name mismatch",
+				  name, user_name);
 
 	if (pw->pw_uid < MIN_CHANGE_UID)
-		error(EXIT_FAILURE, 0, "config: %s: %s: invalid uid: %u",
-		      name, user_name, pw->pw_uid);
+		error_msg_and_die("config: %s: %s: invalid uid: %u",
+				  name, user_name, pw->pw_uid);
 	*user_uid = pw->pw_uid;
 
 	if (pw->pw_gid < MIN_CHANGE_GID)
-		error(EXIT_FAILURE, 0, "config: %s: %s: invalid gid: %u",
-		      name, user_name, pw->pw_gid);
+		error_msg_and_die("config: %s: %s: invalid gid: %u",
+				  name, user_name, pw->pw_gid);
 	*user_gid = pw->pw_gid;
 
 	if (!strcmp(caller_user, user_name))
-		error(EXIT_FAILURE, 0,
-		      "config: %s: %s: name coincides with caller", name,
-		      user_name);
+		error_msg_and_die("config: %s: %s: name coincides with caller",
+				  name, user_name);
 
 	if (caller_uid == *user_uid)
-		error(EXIT_FAILURE, 0,
-		      "config: %s: %s: uid coincides with caller", name,
-		      user_name);
+		error_msg_and_die("config: %s: %s: uid coincides with caller",
+				  name, user_name);
 
 	if (caller_gid == *user_gid)
-		error(EXIT_FAILURE, 0,
-		      "config: %s: %s: gid coincides with caller", name,
-		      user_name);
+		error_msg_and_die("config: %s: %s: gid coincides with caller",
+				  name, user_name);
 }
 
 void
@@ -557,15 +550,15 @@ configure(void)
 	check_user(change_user2, &change_uid2, &change_gid2, "user2");
 
 	if (!strcmp(change_user1, change_user2))
-		error(EXIT_FAILURE, 0, "config: user1 coincides with user2");
+		error_msg_and_die("config: user1 coincides with user2");
 
 	if (change_uid1 == change_uid2)
-		error(EXIT_FAILURE, 0,
-		      "config: uid of user1 coincides with uid of user2");
+		error_msg_and_die("config: uid of user1 coincides with"
+				  " uid of user2");
 
 	if (change_gid1 == change_gid2)
-		error(EXIT_FAILURE, 0,
-		      "config: gid of user1 coincides with gid of user2");
+		error_msg_and_die("config: gid of user1 coincides with"
+				  " gid of user2");
 }
 
 void
@@ -605,8 +598,7 @@ parse_env(void)
 		x11_data_len = strlen(x11_key);
 		if (x11_data_len & 1)
 		{
-			error(EXIT_SUCCESS, 0,
-			      "Invalid X11 authentication data");
+			error_msg("Invalid X11 authentication data");
 			x11_data_len = 0;
 		} else
 		{

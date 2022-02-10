@@ -9,25 +9,16 @@
 
 /* Code in this file may be executed with root privileges. */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "priv.h"
 
-static void
-my_error_print_progname(void)
-{
-	fprintf(stderr, "%s: ", program_invocation_short_name);
-}
-
 int
 main(int ac, const char *av[])
 {
 	task_t  task;
-
-	error_print_progname = my_error_print_progname;
 
 	/* First, check and sanitize file descriptors. */
 	sanitize_fds();
@@ -36,8 +27,7 @@ main(int ac, const char *av[])
 	task = parse_cmdline(ac, av);
 
 	if (chroot_path && *chroot_path != '/')
-		error(EXIT_FAILURE, 0, "%s: invalid chroot path",
-		      chroot_path);
+		error_msg_and_die("%s: invalid chroot path", chroot_path);
 
 	/* Third, initialize data related to caller. */
 	init_caller_data();
@@ -47,7 +37,7 @@ main(int ac, const char *av[])
 
 	/* We don't need environment variables any longer. */
 	if (clearenv() != 0)
-		error(EXIT_FAILURE, errno, "clearenv");
+		perror_msg_and_die("clearenv");
 
 	/* Load config according to caller information. */
 	configure();
@@ -68,7 +58,7 @@ main(int ac, const char *av[])
 		case TASK_CHROOTUID2:
 			return do_chrootuid2();
 		default:
-			error(EXIT_FAILURE, 0, "unknown task %d", task);
+			error_msg_and_die("unknown task %d", task);
 	}
 
 	return EXIT_FAILURE;

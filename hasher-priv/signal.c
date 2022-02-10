@@ -7,8 +7,7 @@
   SPDX-License-Identifier: GPL-2.0-or-later
 */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -25,7 +24,7 @@ block_signal_handler(int no, int what)
 	sigemptyset(&set);
 	sigaddset(&set, no);
 	if (sigprocmask(what, &set, 0) < 0)
-		error(EXIT_FAILURE, errno, "sigprocmask");
+		perror_msg_and_die("sigprocmask");
 }
 
 /* This function may be executed with caller or child privileges. */
@@ -33,7 +32,7 @@ void
 dfl_signal_handler(int no)
 {
 	if (signal(no, SIG_DFL) == SIG_ERR)
-		error(EXIT_FAILURE, errno, "signal");
+		perror_msg_and_die("signal");
 
 	block_signal_handler(no, SIG_UNBLOCK);
 }

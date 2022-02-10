@@ -9,8 +9,7 @@
 
 /* Code in this file may be executed with caller privileges. */
 
-#include <errno.h>
-#include <error.h>
+#include "error_prints.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
@@ -44,7 +43,7 @@ init_tty(void)
 
 		tty_is_saved = 1;
 		if (atexit(restore_tty))
-			error(EXIT_FAILURE, errno, "atexit");
+			perror_msg_and_die("atexit");
 
 		cfmakeraw(&tty_changed);
 		tty_changed.c_iflag |= IXON;
@@ -52,7 +51,7 @@ init_tty(void)
 		tty_changed.c_cc[VTIME] = 0;
 
 		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tty_changed))
-			error(EXIT_FAILURE, errno, "tcsetattr");
+			perror_msg_and_die("tcsetattr");
 
 		return 1;
 	} else
