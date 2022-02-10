@@ -52,7 +52,7 @@ fd_free(const int fd)
 
 	if (i == fd_count)
 		error(EXIT_FAILURE, 0,
-		      "fd_free: descriptor %d not found, count=%lu\n",
+		      "fd_free: descriptor %d not found, count=%lu",
 		      fd, (unsigned long) fd_count);
 
 	fd_list[i] = -1;

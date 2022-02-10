@@ -66,7 +66,7 @@ io_x11_free(io_x11_t io)
 			break;
 	if (i == io_x11_count)
 		error(EXIT_FAILURE, 0,
-		      "io_x11_free: entry %p not found, count=%lu\n", io,
+		      "io_x11_free: entry %p not found, count=%lu", io,
 		      (unsigned long) io_x11_count);
 	io_x11_list[i] = 0;
 
