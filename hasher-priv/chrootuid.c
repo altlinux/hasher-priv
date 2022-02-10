@@ -69,7 +69,7 @@ set_rlimits(void)
 }
 
 static int
-chrootuid(uid_t uid, gid_t gid, const char *const *argv,
+chrootuid(uid_t uid, gid_t gid, const char *user_name, const char *const *argv,
 	  const char *ehome, const char *euser, const char *epath)
 {
 	int     master = -1, slave = -1;
@@ -79,6 +79,29 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 	pid_t   pid;
 
 	spawn_killuid();
+
+	/*
+	 * Obtain the supplementary group access list for the target user,
+	 * clear the current supplementary group access list.
+	 */
+	int ngroups;
+	gid_t *groups = NULL;
+
+	if (initgroups(user_name, gid) != 0)
+	    perror_msg_and_die("initgroups");
+
+	if ((ngroups = getgroups(0, NULL)) == -1)
+	    perror_msg_and_die("getgroups");
+
+	if (ngroups > 0) {
+	    groups = (gid_t *)xcalloc((size_t)ngroups, sizeof(gid_t));
+
+	    if ((ngroups = getgroups(ngroups, groups)) == -1)
+		perror_msg_and_die("getgroups");
+	}
+
+	if (setgroups(0UL, 0) < 0)
+		perror_msg_and_die("setgroups");
 
 	/* Check and setup namespaces.  */
 	setup_ns(caller_pid, caller_uid);
@@ -111,9 +134,6 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 	unshare_uts();
 	if (!share_caller_network)
 		unshare_network();
-
-	if (setgroups(0UL, 0) < 0)
-		perror_msg_and_die("setgroups");
 
 	/* Always create pty, necessary for ioctl TIOCSCTTY in the child. */
 	master = open_pty(&slave, OPEN_PTY_UNCHROOTED, OPEN_PTY_VERBOSE);
@@ -152,6 +172,8 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 		program_invocation_short_name =
 			xasprintf("%s: %s",
 				  program_invocation_short_name, "parent");
+
+		free(groups);
 
 		if (xclose(&slave)
 		    || (!use_pty
@@ -198,6 +220,9 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 		if (prctl(PR_SET_DUMPABLE, 0))
 			perror_msg_and_die("prctl PR_SET_DUMPABLE");
 
+		setgroups((size_t) ngroups, groups);
+		free(groups);
+
 		if (setgid(gid) < 0)
 			perror_msg_and_die("setgid");
 
@@ -220,7 +245,7 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 int
 do_chrootuid1(const char *const *argv)
 {
-	return chrootuid(change_uid1, change_gid1, argv,
+	return chrootuid(change_uid1, change_gid1, change_user1, argv,
 			 "HOME=/root", "USER=root",
 			 "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
@@ -228,7 +253,7 @@ do_chrootuid1(const char *const *argv)
 int
 do_chrootuid2(const char *const *argv)
 {
-	return chrootuid(change_uid2, change_gid2, argv,
+	return chrootuid(change_uid2, change_gid2, change_user2, argv,
 			 "HOME=/usr/src", "USER=builder",
 			 "PATH=/bin:/usr/bin:/usr/X11R6/bin");
 }

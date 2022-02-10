@@ -166,6 +166,10 @@ Here is the control flow of the privileged job runner (euid=root):
           + wait for the exit status
         + in the child:
           + killuid
+      + obtain the supplementary group access list for the target user
+        + initialize the supplementary group access list for the target user
+        + save the supplementary group access list
+        + clear the supplementary group access list
       + check and setup namespaces
         + check that the server and the client belong to the same namespaces
         + enter the client's mount, ipc, uts, and network namespaces
@@ -190,7 +194,6 @@ Here is the control flow of the privileged job runner (euid=root):
       + unless share_uts is enabled, unshare UTS namespace
       + unless share_network is enabled,
         if X11 forwarding to a tcp address was not requested, unshare the network
-      + clear the supplementary group access list
       + create a pty:
         + temporarily switch to called_uid:caller_gid
         + open /dev/ptmx
@@ -230,6 +233,7 @@ Here is the control flow of the privileged job runner (euid=root):
           + unless share_network is enabled,
             if X11 forwarding to a tcp address was requested, unshare the network
           + clear the dumpable flag explicitly
+          + set the list of supplementary access groups to the saved one
           + setgid/setuid to the specified user
           + setsid
           + change the controlling terminal to the pty
