@@ -97,20 +97,14 @@ chdiruid(const char *path, VALIDATE_FPTR validator)
 	ch_uid(caller_uid, &saved_uid);
 
 	/* Change and verify directory, check for chroot prefix path. */
-	if (path[0] == '/')
+	if (path[0] == '/' || !strchr(path, '/')) {
 		chdiruid_simple(path, validator);
-	else
-	{
-		if (!strchr(path, '/'))
-			chdiruid_simple(path, validator);
-		else
-		{
-			char   *elem, *p = xstrdup(path);
+	} else {
+		char   *elem, *p = xstrdup(path);
 
-			for (elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
-				chdiruid_simple(elem, validator);
-			free(p);
-		}
+		for (elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
+			chdiruid_simple(elem, validator);
+		free(p);
 	}
 
 	/* Restore credentials. */
