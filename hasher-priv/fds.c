@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <error.h>
 #include <fcntl.h>
-#include <paths.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/limits.h>
