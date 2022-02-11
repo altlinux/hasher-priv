@@ -401,14 +401,10 @@ set_config(const char *name, const char *value, const char *filename)
 }
 
 static void
-read_config(int fd, const char *name)
+read_config(FILE *fp, const char *name)
 {
-	FILE   *fp = fdopen(fd, "r");
 	char    buf[BUFSIZ];
 	unsigned line;
-
-	if (!fp)
-		error(EXIT_FAILURE, errno, "fdopen: %s", name);
 
 	for (line = 1; fgets(buf, BUFSIZ, fp); ++line)
 	{
@@ -476,10 +472,14 @@ load_config(const char *name)
 		error(EXIT_FAILURE, 0, "%s: file too large: %lu",
 		      name, (unsigned long) st.st_size);
 
-	read_config(fd, name);
+	FILE *fp = fdopen(fd, "r");
+	if (!fp)
+		error(EXIT_FAILURE, errno, "fdopen: %s", name);
 
-	if (close(fd) < 0)
-		error(EXIT_FAILURE, errno, "close: %s", name);
+	read_config(fp, name);
+
+	if (fclose(fp))
+		error(EXIT_FAILURE, errno, "fclose: %s", name);
 }
 
 static void
