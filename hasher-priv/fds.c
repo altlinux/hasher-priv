@@ -165,18 +165,25 @@ cloexec_fds(void)
 void
 nullify_stdin(void)
 {
-	int     fd = open(_PATH_DEVNULL, O_RDONLY);
+	int pipe_fds[2];
 
-	if (fd < 0)
-		error(EXIT_FAILURE, errno, "open: %s", _PATH_DEVNULL);
-	if (fd != STDIN_FILENO)
-	{
-		if (dup2(fd, STDIN_FILENO) != STDIN_FILENO)
-			error(EXIT_FAILURE, errno, "dup2(%d, %d)",
-			      fd, STDIN_FILENO);
-		if (close(fd) < 0)
-			error(EXIT_FAILURE, errno, "close(%d)", fd);
+	if (pipe(pipe_fds))
+		error(EXIT_FAILURE, errno, "pipe");
+	if (close(pipe_fds[1]))
+		error(EXIT_FAILURE, errno, "close");
+
+	if (pipe_fds[0] != STDIN_FILENO) {
+		if (dup2(pipe_fds[0], STDIN_FILENO) != STDIN_FILENO)
+			error(EXIT_FAILURE, errno, "dup2");
+		if (close(pipe_fds[0]))
+			error(EXIT_FAILURE, errno, "close");
 	}
+
+	/*
+	 * At this point STDIN_FILENO is an O_RDONLY descriptor,
+	 * a read attempt from such descriptor ends with EOF,
+	 * and a write attempt is rejected with EBADF.
+	 */
 }
 
 /* This function may be executed with caller privileges. */
