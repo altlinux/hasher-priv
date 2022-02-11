@@ -44,7 +44,8 @@ static struct mnt_ent
 	{"devpts", "/dev/pts", "devpts", "ro,nosuid,noexec,gid=tty,mode=0620,ptmxmode=0666,newinstance"},
 	{"sysfs", "/sys", "sysfs", "ro,nosuid,nodev,noexec"},
 	{"shmfs", "/dev/shm", "tmpfs", "nosuid,nodev,noexec,gid=0,mode=1777,nr_blocks=4096,nr_inodes=4096"},
-	{"/sys/fs/cgroup", "/sys/fs/cgroup", "rbind", "ro,rbind,nosuid,nodev,noexec"}
+	{"/sys/fs/cgroup", "/sys/fs/cgroup", "rbind", "ro,rbind,nosuid,nodev,noexec"},
+	{SOCKETDIR, "/.sockets", "rbind", "rbind,nosuid,nodev,noexec"},
 };
 
 #ifndef MS_MANDLOCK
