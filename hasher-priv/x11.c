@@ -188,8 +188,11 @@ x11_connect_inet(const char *name, unsigned display_number)
 	for (ai = ai_start; ai; ai = ai->ai_next)
 	{
 		fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-		if (fd < 0)
+		if (fd < 0) {
+			if (!saved_errno)
+				saved_errno = errno;
 			continue;
+		}
 
 		if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0)
 		{
