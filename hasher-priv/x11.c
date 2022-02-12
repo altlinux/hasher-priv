@@ -295,10 +295,8 @@ x11_parse_display(void)
 
 	display = xstrdup(x11_display);
 
-	const char *const colon = strchr(display, ':');
 	char *number = strrchr(display, ':');
-
-	if (!colon || !number)
+	if (!number)
 	{
 		error(EXIT_SUCCESS, 0,
 		      "Unrecognized DISPLAY=%s, X11 forwarding disabled",
