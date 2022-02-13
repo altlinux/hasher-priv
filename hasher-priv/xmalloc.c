@@ -94,14 +94,15 @@ xstrdup(const char *s)
 }
 
 char   *
-xasprintf(char **ptr, const char *fmt, ...)
+xasprintf(const char *fmt, ...)
 {
 	va_list arg;
-
 	va_start(arg, fmt);
-	if (vasprintf(ptr, fmt, arg) < 0)
-		error(EXIT_FAILURE, errno, "vasprintf");
-	va_end(arg);
 
-	return *ptr;
+	char *res;
+	if (vasprintf(&res, fmt, arg) < 0)
+		error(EXIT_FAILURE, errno, "vasprintf");
+
+	va_end(arg);
+	return res;
 }

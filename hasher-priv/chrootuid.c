@@ -180,9 +180,7 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		char   *term_env;
-
-		xasprintf(&term_env, "TERM=%s", term ? : "dumb");
+		char   *term_env = xasprintf("TERM=%s", term ? : "dumb");
 		const char *x11_env = x11_display ? "DISPLAY=:10.0" : 0;
 		const char *const env[] = {
 			ehome, euser, epath, term_env, x11_env,

@@ -539,8 +539,6 @@ configure(void)
 
 	if (caller_num)
 	{
-		char   *fname;
-
 		/* Discard user1 and user2. */
 		free((void *) change_user1);
 		change_user1 = 0;
@@ -548,7 +546,7 @@ configure(void)
 		free((void *) change_user2);
 		change_user2 = 0;
 
-		xasprintf(&fname, "%s:%u", caller_user, caller_num);
+		char *fname = xasprintf("%s:%u", caller_user, caller_num);
 		load_config(fname);
 		free(fname);
 	}

@@ -127,8 +127,7 @@ parse_opt(const char *opt, unsigned long *flags, char **options)
 
 		if (gr)
 		{
-			xasprintf(&buf, "gid=%u", (unsigned) gr->gr_gid);
-			opt = buf;
+			opt = buf = xasprintf("gid=%u", (unsigned) gr->gr_gid);
 		}
 	}
 

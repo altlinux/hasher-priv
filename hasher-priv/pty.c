@@ -68,7 +68,7 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 		goto err;
 	}
 
-	xasprintf(&ptsname, pts_fmt, num);
+	ptsname = xasprintf(pts_fmt, num);
 
 #ifdef TIOCSPTLCK
 	num = 0;
