@@ -20,6 +20,12 @@ extern char *xasprintf(const char *fmt, ...)
 	__attribute__ ((__nonnull__(1)));
 
 static inline void *
+xzalloc(size_t size)
+{
+	return xcalloc(1, size);
+}
+
+static inline void *
 xrealloc(void *ptr, size_t size)
 {
         return xreallocarray(ptr, 1, size);

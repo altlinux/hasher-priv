@@ -370,7 +370,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 
 	signal(SIGPIPE, SIG_IGN);
 
-	io = xcalloc(1UL, sizeof(*io));
+	io = xzalloc(sizeof(*io));
 	io->master_read_fd = use_pty ? STDIN_FILENO : -1;
 	io->master_write_out_fd = STDOUT_FILENO;
 	io->master_write_err_fd = use_pty ? -1 : STDERR_FILENO;

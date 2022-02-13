@@ -45,7 +45,7 @@ io_x11_new(int master_fd, int slave_fd)
 		io_x11_list = xreallocarray(io_x11_list, ++io_x11_count,
 					    sizeof(*io_x11_list));
 
-	io_x11_t io = io_x11_list[i] = xcalloc(1UL, sizeof(*io_x11_list[i]));
+	io_x11_t io = io_x11_list[i] = xzalloc(sizeof(*io_x11_list[i]));
 
 	io->master_fd = master_fd;
 	io->slave_fd = slave_fd;
