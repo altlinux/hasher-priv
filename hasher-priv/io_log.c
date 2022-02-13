@@ -35,7 +35,7 @@ fd_new(int fd)
 			break;
 
 	if (i == fd_count)
-		fd_list = xrealloc(fd_list, ++fd_count, sizeof(*fd_list));
+		fd_list = xreallocarray(fd_list, ++fd_count, sizeof(*fd_list));
 
 	fd_list[i] = fd;
 	unblock_fd(fd);

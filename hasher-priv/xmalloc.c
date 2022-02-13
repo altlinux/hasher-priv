@@ -44,7 +44,7 @@ xcalloc(size_t nmemb, size_t size)
 #define HALF_SIZE_T	(((size_t) 1) << (sizeof(size_t) * 4))
 
 void   *
-xrealloc(void *ptr, size_t nmemb, size_t elem_size)
+xreallocarray(void *ptr, size_t nmemb, size_t elem_size)
 {
 	size_t bytes = nmemb * elem_size;
 
@@ -80,7 +80,7 @@ xgrowarray(void *const ptr, size_t *const nmemb, const size_t memb_size)
 
 	*nmemb += grow_memb;
 
-	return xrealloc(ptr, *nmemb, memb_size);
+	return xreallocarray(ptr, *nmemb, memb_size);
 }
 
 char   *

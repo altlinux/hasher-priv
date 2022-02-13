@@ -133,7 +133,7 @@ parse_opt(const char *opt, unsigned long *flags, char **options)
 
 	if (*options)
 	{
-		*options = xrealloc(*options, 1UL,
+		*options = xrealloc(*options,
 				    strlen(*options) + strlen(opt) + 2);
 		strcat(*options, ",");
 		strcat(*options, opt);
@@ -217,9 +217,8 @@ load_fstab(void)
 		e->mnt_type = xstrdup(ent->mnt_type);
 		e->mnt_opts = xstrdup(ent->mnt_opts);
 
-		var_fstab =
-			xrealloc(var_fstab,
-				 var_fstab_size + 1, sizeof(*var_fstab));
+		var_fstab = xreallocarray(var_fstab, var_fstab_size + 1,
+					  sizeof(*var_fstab));
 		var_fstab[var_fstab_size++] = e;
 	}
 
