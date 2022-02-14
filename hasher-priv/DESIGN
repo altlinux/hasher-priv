@@ -54,7 +54,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
   + change_uid1 and change_gid1 initialized from change_user1
   + change_uid2 and change_gid2 initialized from change_user2
 + execute choosen task
-  + getconf: print config file /etc/hasher-priv/user.d/caller_user[:caller_num]
+  + getconf: print the name of the last loaded config file
   + getugid1: print change_uid1:change_gid1 pair
   + getugid2: print change_uid2:change_gid2 pair
   + killuid

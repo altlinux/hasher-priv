@@ -23,6 +23,7 @@
 #include "priv.h"
 #include "xmalloc.h"
 
+const char *caller_config_file_name;
 const char *const *chroot_prefix_list;
 const char *chroot_prefix_path;
 const char *change_user1, *change_user2;
@@ -476,6 +477,8 @@ load_config(const char *name)
 
 	if (fclose(fp))
 		perror_msg_and_die("fclose: %s", name);
+
+	caller_config_file_name = name;
 }
 
 static void
@@ -530,8 +533,7 @@ configure(void)
 	safe_chdir("user.d", stat_root_ok_validator);
 	load_config(caller_user);
 
-	if (caller_num)
-	{
+	if (caller_num) {
 		/* Discard user1 and user2. */
 		free((void *) change_user1);
 		change_user1 = 0;
@@ -539,9 +541,7 @@ configure(void)
 		free((void *) change_user2);
 		change_user2 = 0;
 
-		char *fname = xasprintf("%s:%u", caller_user, caller_num);
-		load_config(fname);
-		free(fname);
+		load_config(xasprintf("%s:%u", caller_user, caller_num));
 	}
 
 	safe_chdir("/", stat_root_ok_validator);

@@ -142,6 +142,7 @@ extern int log_fd;
 
 extern const char *const *chroot_prefix_list;
 extern const char *chroot_prefix_path;
+extern const char *caller_config_file_name;
 extern const char *caller_user, *caller_home;
 extern uid_t caller_uid;
 extern gid_t caller_gid;

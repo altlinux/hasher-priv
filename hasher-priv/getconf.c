@@ -16,11 +16,6 @@
 int
 do_getconf(void)
 {
-	if (caller_num)
-		printf("%s/%s:%u\n", "/etc/hasher-priv/user.d",
-		       caller_user, caller_num);
-	else
-		printf("%s/%s\n", "/etc/hasher-priv/user.d",
-		       caller_user);
+	printf("%s/%s\n", "/etc/hasher-priv/user.d", caller_config_file_name);
 	return 0;
 }
