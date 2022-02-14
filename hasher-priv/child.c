@@ -62,23 +62,6 @@ connect_fds(int pty_fd, int pipe_out, int pipe_err)
 		close(pipe_err);
 }
 
-static  ssize_t
-read_loop(int fd, char *buffer, size_t count)
-{
-	ssize_t offset = 0;
-
-	while (count > 0)
-	{
-		ssize_t block = read_retry(fd, &buffer[offset], count);
-
-		if (block <= 0)
-			return offset ? : block;
-		offset += block;
-		count -= (size_t) block;
-	}
-	return offset;
-}
-
 #define PATH_DEVURANDOM "/dev/urandom"
 
 static char *

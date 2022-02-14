@@ -61,6 +61,7 @@ void    fds_add_fd(fd_set *fds, int *max_fd, const int fd);
 int     fds_isset(fd_set *fds, const int fd);
 ssize_t read_retry(int fd, void *buf, size_t count);
 ssize_t write_retry(int fd, const void *buf, size_t count);
+ssize_t read_loop(int fd, char *buffer, size_t count);
 ssize_t write_loop(int fd, const char *buffer, size_t count);
 void    xwrite_all(int fd, const char *buffer, size_t count);
 int     init_tty(void);

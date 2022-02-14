@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-/* Code in this file may be executed with caller privileges. */
+/* Code in this file may be executed with caller or child privileges. */
 
 #include <errno.h>
 #include <unistd.h>
@@ -26,6 +26,23 @@ ssize_t
 write_retry(int fd, const void *buf, size_t count)
 {
 	return TEMP_FAILURE_RETRY(write(fd, buf, count));
+}
+
+/* This function may be executed with child privileges. */
+ssize_t
+read_loop(int fd, char *buffer, size_t count)
+{
+	ssize_t offset = 0;
+
+	while (count > 0) {
+		ssize_t block = read_retry(fd, &buffer[offset], count);
+
+		if (block <= 0)
+			return offset ? : block;
+		offset += block;
+		count -= (size_t) block;
+	}
+	return offset;
 }
 
 /* This function may be executed with caller privileges. */
