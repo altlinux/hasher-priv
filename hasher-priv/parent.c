@@ -154,7 +154,6 @@ struct io_std
 
 typedef struct io_std *io_std_t;
 
-int log_fd = -1;
 static int pty_fd = -1, ctl_fd = -1, x11_fd = -1;
 static unsigned long total_bytes_read, total_bytes_written;
 

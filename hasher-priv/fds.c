@@ -23,6 +23,8 @@
 
 #include "priv.h"
 
+int log_fd = -1;
+
 static int
 get_open_max(void)
 {
