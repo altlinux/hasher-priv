@@ -1,13 +1,13 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
+ * The file descriptor sanitizer for the hasher-priv project.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-  The file descriptor sanitizer for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
-
-/* Code in this file may be executed with root or caller privileges. */
+/* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
 #include <errno.h>
@@ -23,7 +23,6 @@
 
 #include "priv.h"
 
-/* This function may be executed with root privileges. */
 static int
 get_open_max(void)
 {
@@ -38,7 +37,6 @@ get_open_max(void)
 	return (int) i;
 }
 
-/* This function may be executed with root privileges. */
 #if defined HAVE_CLOSE_RANGE
 static int
 sys_close_range(unsigned int from, unsigned int to, unsigned int flags)
@@ -62,7 +60,6 @@ sys_close_range(unsigned int __attribute__((unused)) from,
 }
 #endif
 
-/* This function may be executed with root privileges. */
 static void
 close_range_brutely(int from, int to)
 {
@@ -71,7 +68,6 @@ close_range_brutely(int from, int to)
 	}
 }
 
-/* This function may be executed with root privileges. */
 static void
 cloexec_range_brutely(int from, int to)
 {
@@ -88,7 +84,6 @@ cloexec_range_brutely(int from, int to)
 	}
 }
 
-/* This function may be executed with root privileges. */
 static int
 reorder_fd(int start_fd, int *target_fdp)
 {
@@ -108,7 +103,6 @@ reorder_fd(int start_fd, int *target_fdp)
 	return ++start_fd;
 }
 
-/* This function may be executed with root privileges. */
 static int
 reorder_fds(int start_fd)
 {
@@ -116,7 +110,6 @@ reorder_fds(int start_fd)
 	return reorder_fd(start_fd, &log_fd);
 }
 
-/* This function may be executed with root privileges. */
 void
 sanitize_fds(void)
 {
@@ -126,8 +119,7 @@ sanitize_fds(void)
 	umask(077);
 
 	/* Check for stdin, stdout and stderr: they should be present. */
-	for (fd = STDIN_FILENO; fd <= STDERR_FILENO; ++fd)
-	{
+	for (fd = STDIN_FILENO; fd <= STDERR_FILENO; ++fd) {
 		struct stat st;
 
 		if (fstat(fd, &st) < 0)
@@ -146,7 +138,6 @@ sanitize_fds(void)
 	errno = 0;
 }
 
-/* This function may be executed with root privileges. */
 void
 cloexec_fds(void)
 {
@@ -158,95 +149,4 @@ cloexec_fds(void)
 	}
 
 	errno = 0;
-}
-
-/* This function may be executed with caller or child privileges. */
-void
-nullify_stdin(void)
-{
-	int pipe_fds[2];
-
-	if (pipe(pipe_fds))
-		perror_msg_and_die("pipe");
-	if (close(pipe_fds[1]))
-		perror_msg_and_die("close");
-
-	if (pipe_fds[0] != STDIN_FILENO) {
-		if (dup2(pipe_fds[0], STDIN_FILENO) != STDIN_FILENO)
-			perror_msg_and_die("dup2");
-		if (close(pipe_fds[0]))
-			perror_msg_and_die("close");
-	}
-
-	/*
-	 * At this point STDIN_FILENO is an O_RDONLY descriptor,
-	 * a read attempt from such descriptor ends with EOF,
-	 * and a write attempt is rejected with EBADF.
-	 */
-}
-
-/* This function may be executed with caller privileges. */
-void
-unblock_fd(int fd)
-{
-	int     flags;
-
-	if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
-		perror_msg_and_die("fcntl F_GETFL");
-
-	int     newflags = flags | O_NONBLOCK;
-
-	if (flags != newflags && fcntl(fd, F_SETFL, newflags) < 0)
-		perror_msg_and_die("fcntl F_SETFL");
-}
-
-/* This function may be executed with caller privileges. */
-ssize_t
-read_retry(int fd, void *buf, size_t count)
-{
-	return TEMP_FAILURE_RETRY(read(fd, buf, count));
-}
-
-/* This function may be executed with caller privileges. */
-ssize_t
-write_retry(int fd, const void *buf, size_t count)
-{
-	return TEMP_FAILURE_RETRY(write(fd, buf, count));
-}
-
-/* This function may be executed with caller privileges. */
-ssize_t
-write_loop(int fd, const char *buffer, size_t count)
-{
-	ssize_t offset = 0;
-
-	while (count > 0)
-	{
-		ssize_t block = write_retry(fd, &buffer[offset], count);
-
-		if (block <= 0)
-			return offset ? : block;
-		offset += block;
-		count -= (size_t) block;
-	}
-	return offset;
-}
-
-/* This function may be executed with caller privileges. */
-void
-fds_add_fd(fd_set *fds, int *max_fd, const int fd)
-{
-	if (fd < 0)
-		return;
-
-	FD_SET(fd, fds);
-	if (fd > *max_fd)
-		*max_fd = fd;
-}
-
-/* This function may be executed with caller privileges. */
-int
-fds_isset(fd_set *fds, const int fd)
-{
-	return (fd >= 0) && FD_ISSET(fd, fds);
 }

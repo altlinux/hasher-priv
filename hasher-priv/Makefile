@@ -52,10 +52,12 @@ SRC =	\
 	config.c	\
 	die.c		\
 	error_prints.c	\
+	fd_set.c	\
 	fds.c		\
 	getconf.c	\
 	getugid.c	\
 	io_log.c	\
+	io_loop.c	\
 	io_x11.c	\
 	ipc.c		\
 	killuid.c	\
@@ -63,11 +65,13 @@ SRC =	\
 	makedev.c	\
 	mount.c		\
 	net.c		\
+	nullify_stdin.c	\
 	parent.c	\
 	pass.c		\
 	pty.c		\
 	signal.c	\
 	tty.c		\
+	unblock_fd.c	\
 	unshare.c	\
 	x11.c		\
 	xmalloc.c	\
