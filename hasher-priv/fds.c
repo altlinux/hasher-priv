@@ -10,18 +10,18 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "fds.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <linux/limits.h>
 #include <limits.h>
 
 #ifndef CLOSE_RANGE_CLOEXEC
 # define CLOSE_RANGE_CLOEXEC	(1U << 2)
 #endif
-
-#include "priv.h"
 
 int log_fd = -1;
 

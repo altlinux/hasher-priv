@@ -10,6 +10,8 @@
 /* Code in this file may be executed with child privileges. */
 
 #include "error_prints.h"
+#include "io_loop.h"
+#include "nullify_stdin.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

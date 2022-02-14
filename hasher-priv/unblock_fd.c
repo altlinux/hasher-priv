@@ -9,10 +9,9 @@
 
 /* Code in this file may be executed with caller privileges. */
 
+#include "unblock_fd.h"
 #include "error_prints.h"
 #include <fcntl.h>
-
-#include "priv.h"
 
 void
 unblock_fd(int fd)

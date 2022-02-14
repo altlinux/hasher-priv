@@ -10,6 +10,9 @@
 /* Code in this file may be executed with caller privileges. */
 
 #include "error_prints.h"
+#include "fd_set.h"
+#include "io_loop.h"
+#include "unblock_fd.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

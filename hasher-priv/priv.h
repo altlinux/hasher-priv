@@ -53,16 +53,6 @@ typedef struct {
 
 typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
 
-void    sanitize_fds(void);
-void    cloexec_fds(void);
-void    nullify_stdin(void);
-void    unblock_fd(int fd);
-void    fds_add_fd(fd_set *fds, int *max_fd, const int fd);
-int     fds_isset(fd_set *fds, const int fd);
-ssize_t read_retry(int fd, void *buf, size_t count);
-ssize_t write_retry(int fd, const void *buf, size_t count);
-ssize_t read_loop(int fd, char *buffer, size_t count);
-ssize_t write_loop(int fd, const char *buffer, size_t count);
 void    xwrite_all(int fd, const char *buffer, size_t count);
 int     init_tty(void);
 void    restore_tty(void);
@@ -139,7 +129,6 @@ extern int share_network;
 extern int share_uts;
 
 extern int dev_pts_mounted;
-extern int log_fd;
 
 extern const char *const *chroot_prefix_list;
 extern const char *chroot_prefix_path;

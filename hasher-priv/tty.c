@@ -10,6 +10,7 @@
 /* Code in this file may be executed with caller privileges. */
 
 #include "error_prints.h"
+#include "nullify_stdin.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>

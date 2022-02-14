@@ -9,10 +9,9 @@
 
 /* Code in this file may be executed with caller or child privileges. */
 
+#include "io_loop.h"
 #include <errno.h>
 #include <unistd.h>
-
-#include "priv.h"
 
 /* This function may be executed with caller privileges. */
 ssize_t

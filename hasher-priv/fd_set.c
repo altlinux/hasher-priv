@@ -9,8 +9,8 @@
 
 /* Code in this file may be executed with caller privileges. */
 
+#include "fd_set.h"
 #include <sys/select.h>
-#include "priv.h"
 
 void
 fds_add_fd(fd_set *fds, int *max_fd, const int fd)

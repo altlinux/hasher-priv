@@ -9,11 +9,10 @@
 
 /* Code in this file may be executed with caller or child privileges. */
 
+#include "nullify_stdin.h"
 #include "error_prints.h"
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "priv.h"
 
 void
 nullify_stdin(void)
