@@ -56,12 +56,12 @@ SRC =	\
 	fds.c		\
 	getconf.c	\
 	getugid.c	\
+	hasher-priv.c	\
 	io_log.c	\
 	io_loop.c	\
 	io_x11.c	\
 	ipc.c		\
 	killuid.c	\
-	main.c		\
 	makedev.c	\
 	mount.c		\
 	net.c		\
