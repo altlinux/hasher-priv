@@ -66,7 +66,9 @@ void    ch_uid(uid_t uid, uid_t *save);
 void    ch_gid(gid_t gid, gid_t *save);
 void    chdiruid(const char *path, VALIDATE_FPTR validator);
 void    purge_ipc(uid_t uid1, uid_t uid2);
-void    handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err, int ctl_fd) __attribute__ ((noreturn));
+void    handle_child(const char *const *env,
+		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
+	__attribute__ ((noreturn));
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
 void    block_signal_handler(int no, int what);
 void    dfl_signal_handler(int no);

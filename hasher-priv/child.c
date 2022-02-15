@@ -103,7 +103,7 @@ xauth_gen_fake(void)
 }
 
 static int
-xauth_add_entry(char *const *env)
+xauth_add_entry(const char *const *env)
 {
 	pid_t   pid = fork();
 
@@ -121,7 +121,8 @@ xauth_add_entry(char *const *env)
 
 		for (i = 0; i < ARRAY_SIZE(paths); ++i)
 		{
-			execve(paths[i], (char *const *) av, env);
+			execve(paths[i], (char *const *) av,
+					 (char *const *) env);
 			errors[i] = errno;
 		}
 		for (i = 0; i < ARRAY_SIZE(paths); ++i) {
@@ -140,8 +141,8 @@ xauth_add_entry(char *const *env)
 }
 
 void
-handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
-	     int ctl_fd)
+handle_child(const char *const *env,
+	     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
 {
 	if (x11_key)
 	{
@@ -179,6 +180,6 @@ handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
 
 	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 
-	execve(chroot_argv[0], (char *const *) chroot_argv, env);
+	execve(chroot_argv[0], (char *const *) chroot_argv, (char *const *) env);
 	perror_msg_and_die("execve: %s", chroot_argv[0]);
 }
