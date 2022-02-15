@@ -6,6 +6,11 @@
  */
 
 #define error_msg error_msg
+#define warn_msg warn_msg
+#define notice_msg notice_msg
+#define info_msg info_msg
+#define debug_msg debug_msg
+
 #include "error_prints.h"
 #include "logging.h"
 #include "macros.h"
@@ -136,5 +141,41 @@ error_msg(const char *fmt, ...)
 	va_list p;
 	va_start(p, fmt);
 	vprint_or_log_msg(LOG_ERR, fmt, p);
+	va_end(p);
+}
+
+void
+warn_msg(const char *fmt, ...)
+{
+	va_list p;
+	va_start(p, fmt);
+	vprint_or_log_msg(LOG_WARNING, fmt, p);
+	va_end(p);
+}
+
+void
+notice_msg(const char *fmt, ...)
+{
+	va_list p;
+	va_start(p, fmt);
+	vprint_or_log_msg(LOG_NOTICE, fmt, p);
+	va_end(p);
+}
+
+void
+info_msg(const char *fmt, ...)
+{
+	va_list p;
+	va_start(p, fmt);
+	vprint_or_log_msg(LOG_INFO, fmt, p);
+	va_end(p);
+}
+
+void
+debug_msg(const char *fmt, ...)
+{
+	va_list p;
+	va_start(p, fmt);
+	vprint_or_log_msg(LOG_DEBUG, fmt, p);
 	va_end(p);
 }
