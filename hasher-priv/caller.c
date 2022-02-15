@@ -20,9 +20,10 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-const char *caller_user, *caller_home;
-uid_t   caller_uid;
-gid_t   caller_gid;
+const char *caller_user;
+const char *caller_home;
+uid_t caller_uid;
+gid_t caller_gid;
 
 /*
  * Initialize caller_user, caller_uid, caller_gid and caller_home.
@@ -67,9 +68,11 @@ init_caller_data(void)
 		error_msg_and_die("caller %s: gid mismatch", caller_user);
 
 	errno = 0;
-	if (pw->pw_dir && *pw->pw_dir)
+	if (pw->pw_dir && pw->pw_dir[0] == '/')
 		caller_home = canonicalize_file_name(pw->pw_dir);
+	else
+		caller_home = 0;
 
-	if (!caller_home || !*caller_home)
+	if (!caller_home || caller_home[0] != '/')
 		perror_msg_and_die("caller %s: invalid home", caller_user);
 }
