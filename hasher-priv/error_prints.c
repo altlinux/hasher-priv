@@ -7,21 +7,49 @@
 
 #define error_msg error_msg
 #include "error_prints.h"
+#include "logging.h"
 
 #include <errno.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <syslog.h>
+
+static enum {
+	LOGGING_STANDALONE,
+	LOGGING_STDERR,
+	LOGGING_SYSLOG
+} logging = LOGGING_STANDALONE;
 
 void
-error_msg(const char *fmt, ...)
+init_log_standalone(void)
 {
-	va_list p;
+	if (logging == LOGGING_SYSLOG)
+		closelog();
+	logging = LOGGING_STANDALONE;
+}
+
+void
+init_log_daemon(int is_foreground)
+{
+	if (is_foreground) {
+		if (logging == LOGGING_SYSLOG)
+			closelog();
+		logging = LOGGING_STDERR;
+	} else {
+		openlog(program_invocation_short_name,
+			LOG_PID | LOG_NDELAY, LOG_DAEMON);
+		logging = LOGGING_SYSLOG;
+	}
+}
+
+static void
+ATTRIBUTE_FORMAT((__printf__, 2, 0))
+vprint_msg(int prio, const char *fmt, va_list p)
+{
 	char *msg = NULL;
 	int saved_errno = errno;
-
-	va_start(p, fmt);
 
 	fflush(NULL);
 
@@ -32,12 +60,18 @@ error_msg(const char *fmt, ...)
 	 */
 	errno = saved_errno;
 	if (vasprintf(&msg, fmt, p) >= 0) {
-		fprintf(stderr, "%s: %s\n",
-			program_invocation_short_name, msg);
+		if (logging == LOGGING_STDERR)
+			fprintf(stderr, "<%d>%s\n", prio, msg);
+		else
+			fprintf(stderr, "%s: %s\n",
+				program_invocation_short_name, msg);
 		free(msg);
 	} else {
 		/* malloc in vasprintf failed, try it without malloc */
-		fprintf(stderr, "%s: ", program_invocation_short_name);
+		if (logging == LOGGING_STDERR)
+			fprintf(stderr, "<%d>", prio);
+		else
+			fprintf(stderr, "%s: ", program_invocation_short_name);
 		errno = saved_errno;
 		vfprintf(stderr, fmt, p);
 		putc('\n', stderr);
@@ -47,6 +81,26 @@ error_msg(const char *fmt, ...)
 	 * always flushes its output and this is not necessary:
 	 * fflush(stderr);
 	 */
+}
 
+static void
+ATTRIBUTE_FORMAT((__printf__, 2, 0))
+vprint_or_log_msg(int prio, const char *fmt, va_list p)
+{
+	switch (logging) {
+		case LOGGING_SYSLOG:
+			vsyslog(prio, fmt, p);
+			break;
+		default:
+			vprint_msg(prio, fmt, p);
+	}
+}
+
+void
+error_msg(const char *fmt, ...)
+{
+	va_list p;
+	va_start(p, fmt);
+	vprint_or_log_msg(LOG_ERR, fmt, p);
 	va_end(p);
 }
