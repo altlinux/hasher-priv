@@ -11,5 +11,6 @@
 
 void init_log_standalone(void);
 void init_log_daemon(int is_foreground);
+void set_log_level(const char *name);
 
 #endif /* !HASHER_LOGGING_H */

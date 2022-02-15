@@ -8,6 +8,7 @@
 #define error_msg error_msg
 #include "error_prints.h"
 #include "logging.h"
+#include "macros.h"
 
 #include <errno.h>
 #include <stdarg.h>
@@ -42,6 +43,36 @@ init_log_daemon(int is_foreground)
 			LOG_PID | LOG_NDELAY, LOG_DAEMON);
 		logging = LOGGING_SYSLOG;
 	}
+}
+
+static int log_level = LOG_INFO;
+
+static int
+translate_log_level(const char *name)
+{
+	static const struct {
+		const char *name;
+		int level;
+	} table[] = {
+		{ "debug", LOG_DEBUG },
+		{ "info", LOG_INFO },
+		{ "notice", LOG_NOTICE },
+		{ "warning", LOG_WARNING },
+		{ "error", LOG_ERR },
+	};
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(table); ++i) {
+		if (strcasecmp(name, table[i].name) == 0)
+			return table[i].level;
+	}
+
+	error_msg_and_die("unrecognized log level: %s", name);
+}
+
+void
+set_log_level(const char *name)
+{
+	log_level = translate_log_level(name);
 }
 
 static void
@@ -87,6 +118,9 @@ static void
 ATTRIBUTE_FORMAT((__printf__, 2, 0))
 vprint_or_log_msg(int prio, const char *fmt, va_list p)
 {
+	if (prio > log_level)
+		return;
+
 	switch (logging) {
 		case LOGGING_SYSLOG:
 			vsyslog(prio, fmt, p);
