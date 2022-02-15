@@ -77,7 +77,6 @@ print_version(void)
 }
 
 const char *chroot_path;
-const char **chroot_argv;
 unsigned caller_num;
 
 static unsigned
@@ -98,7 +97,7 @@ get_caller_num(const char *str)
 
 /* Parse command line arguments. */
 task_t
-parse_cmdline(int argc, const char *argv[])
+parse_cmdline(int argc, const char *argv[], const char ***task_args)
 {
 	int     ac;
 	const char **av;
@@ -126,6 +125,8 @@ parse_cmdline(int argc, const char *argv[])
 	if (ac < 1)
 		show_usage("insufficient arguments");
 
+	*task_args = NULL;
+
 	if (!strcmp("getconf", av[0]))
 	{
 		if (ac != 1)
@@ -146,7 +147,7 @@ parse_cmdline(int argc, const char *argv[])
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
-		chroot_argv = av + 2;
+		*task_args = av + 2;
 		return TASK_CHROOTUID1;
 	} else if (!strcmp("getugid2", av[0]))
 	{
@@ -158,7 +159,7 @@ parse_cmdline(int argc, const char *argv[])
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
-		chroot_argv = av + 2;
+		*task_args = av + 2;
 		return TASK_CHROOTUID2;
 	} else
 		show_usage("%s: invalid argument", av[0]);

@@ -19,13 +19,12 @@
 int
 main(int ac, const char *av[])
 {
-	task_t  task;
-
 	/* First, check and sanitize file descriptors. */
 	sanitize_fds();
 
 	/* Second, parse command line arguments. */
-	task = parse_cmdline(ac, av);
+	const char **task_args;
+	task_t task = parse_cmdline(ac, av, &task_args);
 
 	if (chroot_path && *chroot_path != '/')
 		error_msg_and_die("%s: invalid chroot path", chroot_path);
@@ -53,11 +52,11 @@ main(int ac, const char *av[])
 		case TASK_GETUGID1:
 			return do_getugid1();
 		case TASK_CHROOTUID1:
-			return do_chrootuid1();
+			return do_chrootuid1(task_args);
 		case TASK_GETUGID2:
 			return do_getugid2();
 		case TASK_CHROOTUID2:
-			return do_chrootuid2();
+			return do_chrootuid2(task_args);
 		default:
 			error_msg_and_die("unknown task %d", task);
 	}

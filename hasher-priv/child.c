@@ -141,7 +141,7 @@ xauth_add_entry(const char *const *env)
 }
 
 void
-handle_child(const char *const *env,
+handle_child(const char *const *argv, const char *const *env,
 	     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
 {
 	if (x11_key)
@@ -180,6 +180,6 @@ handle_child(const char *const *env,
 
 	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 
-	execve(chroot_argv[0], (char *const *) chroot_argv, (char *const *) env);
-	perror_msg_and_die("execve: %s", chroot_argv[0]);
+	execve(argv[0], (char *const *) argv, (char *const *) env);
+	perror_msg_and_die("execve: %s", argv[0]);
 }

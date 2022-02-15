@@ -58,7 +58,7 @@ int     init_tty(void);
 void    restore_tty(void);
 int     tty_copy_winsize(int master_fd, int slave_fd);
 int     open_pty(int *slave_fd, int chrooted, int verbose_error);
-task_t  parse_cmdline(int ac, const char *av[]);
+task_t  parse_cmdline(int ac, const char *av[], const char ***task_args);
 void    init_caller_data(void);
 void    parse_env(void);
 void    configure(void);
@@ -66,7 +66,7 @@ void    ch_uid(uid_t uid, uid_t *save);
 void    ch_gid(gid_t gid, gid_t *save);
 void    chdiruid(const char *path, VALIDATE_FPTR validator);
 void    purge_ipc(uid_t uid1, uid_t uid2);
-void    handle_child(const char *const *env,
+void    handle_child(const char *const *argv, const char *const *env,
 		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
 	__attribute__ ((noreturn));
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
@@ -108,12 +108,11 @@ void	unshare_uts(void);
 int     do_getconf(void);
 int     do_killuid(void);
 int     do_getugid1(void);
-int     do_chrootuid1(void);
+int     do_chrootuid1(const char *const *argv);
 int     do_getugid2(void);
-int     do_chrootuid2(void);
+int     do_chrootuid2(const char *const *argv);
 
 extern const char *chroot_path;
-extern const char **chroot_argv;
 
 extern str_list_t allowed_devices;
 extern str_list_t allowed_mountpoints;

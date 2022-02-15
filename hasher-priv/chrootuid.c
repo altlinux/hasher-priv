@@ -55,8 +55,8 @@ set_rlimits(void)
 }
 
 static int
-chrootuid(uid_t uid, gid_t gid, const char *ehome,
-	  const char *euser, const char *epath)
+chrootuid(uid_t uid, gid_t gid, const char *const *argv,
+	  const char *ehome, const char *euser, const char *epath)
 {
 	int     master = -1, slave = -1;
 	int     pipe_out[2] = { -1, -1 };
@@ -181,23 +181,23 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 			"SHELL=/bin/sh", 0
 		};
 
-		handle_child(env, slave,
+		handle_child(argv, env, slave,
 			     pipe_out[1], pipe_err[1], ctl[1]);
 	}
 }
 
 int
-do_chrootuid1(void)
+do_chrootuid1(const char *const *argv)
 {
-	return chrootuid(change_uid1, change_gid1,
+	return chrootuid(change_uid1, change_gid1, argv,
 			 "HOME=/root", "USER=root",
 			 "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
 
 int
-do_chrootuid2(void)
+do_chrootuid2(const char *const *argv)
 {
-	return chrootuid(change_uid2, change_gid2,
+	return chrootuid(change_uid2, change_gid2, argv,
 			 "HOME=/usr/src", "USER=builder",
 			 "PATH=/bin:/usr/bin:/usr/X11R6/bin");
 }
