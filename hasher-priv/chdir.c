@@ -131,11 +131,3 @@ stat_root_ok_validator(struct stat *st, const char *name)
 		error(EXIT_FAILURE, 0, "%s: bad perms: %o", name,
 		      st->st_mode & 07777);
 }
-
-/* This function may be executed with root privileges. */
-void
-stat_any_ok_validator( __attribute__ ((unused))
-		     struct stat *st, __attribute__ ((unused))
-		     const char *name)
-{
-}
