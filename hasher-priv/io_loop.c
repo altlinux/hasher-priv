@@ -12,6 +12,7 @@
 #include "io_loop.h"
 #include <errno.h>
 #include <unistd.h>
+#include <sys/socket.h>
 
 /* This function may be executed with caller privileges. */
 ssize_t
@@ -25,6 +26,18 @@ ssize_t
 write_retry(int fd, const void *buf, size_t count)
 {
 	return TEMP_FAILURE_RETRY(write(fd, buf, count));
+}
+
+/* This function may be executed with child privileges. */
+ssize_t sendmsg_retry(int fd, const struct msghdr *msg, int flags)
+{
+	return TEMP_FAILURE_RETRY(sendmsg(fd, msg, flags));
+}
+
+/* This function may be executed with caller privileges. */
+ssize_t recvmsg_retry(int fd, struct msghdr *msg, int flags)
+{
+	return TEMP_FAILURE_RETRY(recvmsg(fd, msg, flags));
 }
 
 /* This function may be executed with child privileges. */

@@ -10,6 +10,7 @@
 /* Code in this file may be executed with caller or child privileges. */
 
 #include "error_prints.h"
+#include "io_loop.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -53,22 +54,16 @@ fd_send(int ctl, int pass, const char *data, size_t data_len)
 	vec.iov_base = (char *) data;
 	vec.iov_len = data_len;
 
-	ssize_t rc;
-
-	if ((rc = TEMP_FAILURE_RETRY(sendmsg(ctl, &msg, 0))) !=
-	    (ssize_t) data_len)
-	{
-		if (rc < 0)
-		{
+	ssize_t rc = sendmsg_retry(ctl, &msg, 0);
+	if (rc != (ssize_t) data_len) {
+		if (rc < 0) {
 			perror_msg_and_die("sendmsg");
-		} else
-		{
-			if (rc)
-				error_msg_and_die("expected size %u, got %u",
-						  (unsigned int) data_len,
-						  (unsigned int) rc);
-			else
-				error_msg_and_die("unexpected EOF");
+		} else if (rc) {
+			error_msg_and_die("expected size %u, got %u",
+					  (unsigned int) data_len,
+					  (unsigned int) rc);
+		} else {
+			error_msg_and_die("unexpected EOF");
 		}
 	}
 }
@@ -93,17 +88,12 @@ fd_recv(int ctl, char *data, size_t data_len)
 	vec.iov_base = data;
 	vec.iov_len = data_len;
 
-	ssize_t rc;
-
-	if ((rc = TEMP_FAILURE_RETRY(recvmsg(ctl, &msg, 0))) !=
-	    (ssize_t) data_len)
-	{
-		if (rc < 0)
-		{
+	ssize_t rc = recvmsg_retry(ctl, &msg, 0);
+	if (rc != (ssize_t) data_len) {
+		if (rc < 0) {
 			perror_msg("recvmsg");
 			fputc('\r', stderr);
-		} else
-		{
+		} else {
 			if (rc)
 				error_msg("expected size %u, got %u\r",
 					  (unsigned int) data_len,
