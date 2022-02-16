@@ -173,7 +173,7 @@ xmount(struct mnt_ent *e)
 }
 
 static struct mnt_ent **var_fstab;
-size_t var_fstab_size;
+static size_t var_fstab_size;
 
 static void
 load_fstab(void)
