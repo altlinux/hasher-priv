@@ -20,12 +20,6 @@
 
 #include "priv.h"
 
-union cmsg_data_u
-{
-	int    *i;
-	unsigned char *c;
-};
-
 /* This function may be executed with child privileges. */
 void
 fd_send(int ctl, int *fds, unsigned int n_fds,
@@ -79,53 +73,87 @@ fd_send(int ctl, int *fds, unsigned int n_fds,
 }
 
 /* This function may be executed with caller privileges. */
-
 int
-fd_recv(int ctl, char *data, size_t data_len)
+fd_recv(int ctl, int *fds, unsigned int n_fds, char *data, size_t data_len)
 {
-	struct iovec vec;
-	struct msghdr msg;
-	struct cmsghdr *cmsg;
-	union cmsg_data_u cmsg_data_p;
-	char    buf[CMSG_SPACE(sizeof(int))];
+	const size_t clen = sizeof(fds[0]) * n_fds;
+	union {
+		char buf[CMSG_SPACE(clen)];
+		struct cmsghdr align;
+	} u;
 
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_control = buf;
-	msg.msg_controllen = sizeof(buf);
-	msg.msg_iov = &vec;
-	msg.msg_iovlen = 1;
+	char dummy;
+	if (!data_len) {
+		/*
+		 * We have to receive at least a byte of regular data
+		 * in order to receive some ancillary data.
+		 */
+		data = &dummy;
+		data_len = sizeof(dummy);
+	}
 
-	vec.iov_base = data;
-	vec.iov_len = data_len;
+	struct iovec iov = {
+		.iov_base = data,
+		.iov_len = data_len
+	};
+
+	struct msghdr msg = {
+		.msg_iov = &iov,
+		.msg_iovlen = 1,
+		.msg_control = u.buf,
+		.msg_controllen = sizeof(u.buf)
+	};
 
 	ssize_t rc = recvmsg_retry(ctl, &msg, 0);
 	if (rc != (ssize_t) data_len) {
 		if (rc < 0) {
 			perror_msg("recvmsg");
+		} else if (rc) {
+			error_msg("expected size %lu, got %lu",
+				  (unsigned long) data_len,
+				  (unsigned long) rc);
 		} else {
-			if (rc)
-				error_msg("expected size %u, got %u",
-					  (unsigned int) data_len,
-					  (unsigned int) rc);
-			else
-				error_msg("unexpected EOF");
+			error_msg("unexpected EOF");
 		}
 		return -1;
 	}
 
-	if (!(cmsg = CMSG_FIRSTHDR(&msg)))
-	{
-		error_msg("no message header");
+	/*
+	 * Since the peer is expected to follow the protocol,
+	 * be defensive and bail out in case of any irregularities.
+	 * This means up to n_fds - 1 descriptors might be received
+	 * and leaked in the worst case scenario.
+	 * Call callers are prepared to handle that situation properly.
+	 */
+	struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+	if (!cmsg) {
+		error_msg("no ancillary data");
 		return -1;
 	}
 
-	if (cmsg->cmsg_type != SCM_RIGHTS)
-	{
-		error_msg("expected type %u, got %u",
-			  SCM_RIGHTS, cmsg->cmsg_type);
+	if (cmsg->cmsg_level != SOL_SOCKET) {
+		error_msg("expected SOL_SOCKET, got %d", cmsg->cmsg_level);
 		return -1;
 	}
 
-	cmsg_data_p.c = CMSG_DATA(cmsg);
-	return *cmsg_data_p.i;
+	if (cmsg->cmsg_type != SCM_RIGHTS) {
+		error_msg("expected SCM_RIGHTS, got %d", cmsg->cmsg_type);
+		return -1;
+	}
+
+	size_t recv_len = cmsg->cmsg_len - CMSG_LEN(0);
+	if (recv_len != clen) {
+		error_msg("SCM_RIGHTS: expected size %lu, got %lu",
+			  clen, recv_len);
+		return -1;
+	}
+
+	memcpy(fds, CMSG_DATA(cmsg), clen);
+
+	if (CMSG_NXTHDR(&msg, cmsg)) {
+		error_msg("stray ancillary data");
+		return -1;
+	}
+
+	return 0;
 }

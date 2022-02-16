@@ -77,7 +77,8 @@ void    stat_caller_ok_validator(struct stat *st, const char *name);
 void    stat_root_ok_validator(struct stat *st, const char *name);
 void    fd_send(int ctl, int *fds, unsigned int n_fds,
 		const char *data, size_t data_len) __attribute__((nonnull(2)));
-int     fd_recv(int ctl, char *data, size_t data_len);
+int     fd_recv(int ctl, int *fds, unsigned int n_fds,
+		char *data, size_t data_len) __attribute__((nonnull(2)));
 int     unix_accept(int fd);
 int     log_listen(void);
 void    x11_drop_display(void);
