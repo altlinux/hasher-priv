@@ -75,7 +75,8 @@ void    dfl_signal_handler(int no);
 void    safe_chdir(const char *name, VALIDATE_FPTR validator);
 void    stat_caller_ok_validator(struct stat *st, const char *name);
 void    stat_root_ok_validator(struct stat *st, const char *name);
-void    fd_send(int ctl, int pass, const char *data, size_t len);
+void    fd_send(int ctl, int *fds, unsigned int n_fds,
+		const char *data, size_t data_len) __attribute__((nonnull(2)));
 int     fd_recv(int ctl, char *data, size_t data_len);
 int     unix_accept(int fd);
 int     log_listen(void);

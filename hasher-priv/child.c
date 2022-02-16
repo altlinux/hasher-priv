@@ -170,7 +170,7 @@ handle_child(const char *const *argv, const char *const *env,
 
 			if ((data = xauth_gen_fake())
 			    && xauth_add_entry(env) == EXIT_SUCCESS)
-				fd_send(ctl_fd, x11_fd, data, x11_data_len);
+				fd_send(ctl_fd, &x11_fd, 1, data, x11_data_len);
 			(void) close(x11_fd);
 			free(data);
 		}

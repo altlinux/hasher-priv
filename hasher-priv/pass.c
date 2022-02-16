@@ -27,41 +27,51 @@ union cmsg_data_u
 };
 
 /* This function may be executed with child privileges. */
-
 void
-fd_send(int ctl, int pass, const char *data, size_t data_len)
+fd_send(int ctl, int *fds, unsigned int n_fds,
+	const char *data, size_t data_len)
 {
-	struct iovec vec;
-	struct msghdr msg;
-	struct cmsghdr *cmsg;
-	union cmsg_data_u cmsg_data_p;
-	char    buf[CMSG_SPACE(sizeof pass)];
+	const size_t clen = sizeof(fds[0]) * n_fds;
+	union {
+		char buf[CMSG_SPACE(clen)];
+		struct cmsghdr align;
+	} u;
 
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_control = buf;
-	msg.msg_controllen = sizeof(buf);
-	msg.msg_iov = &vec;
-	msg.msg_iovlen = 1;
+	if (!data_len) {
+		/*
+		 * We have to send at least a byte of regular data
+		 * in order to send some ancillary data.
+		 */
+		data = u.buf;
+		data_len = 1;
+	}
 
-	cmsg = CMSG_FIRSTHDR(&msg);
+	struct iovec iov = {
+		.iov_base = (char *) data,
+		.iov_len = data_len
+	};
+
+	struct msghdr msg = {
+		.msg_iov = &iov,
+		.msg_iovlen = 1,
+		.msg_control = u.buf,
+		.msg_controllen = sizeof(u.buf)
+	};
+
+	struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;
-	cmsg->cmsg_len = CMSG_LEN(sizeof pass);
-
-	cmsg_data_p.c = CMSG_DATA(cmsg);
-	*cmsg_data_p.i = pass;
-
-	vec.iov_base = (char *) data;
-	vec.iov_len = data_len;
+	cmsg->cmsg_len = CMSG_LEN(clen);
+	memcpy(CMSG_DATA(cmsg), fds, clen);
 
 	ssize_t rc = sendmsg_retry(ctl, &msg, 0);
 	if (rc != (ssize_t) data_len) {
 		if (rc < 0) {
 			perror_msg_and_die("sendmsg");
 		} else if (rc) {
-			error_msg_and_die("expected size %u, got %u",
-					  (unsigned int) data_len,
-					  (unsigned int) rc);
+			error_msg_and_die("expected size %lu, got %lu",
+					  (unsigned long) data_len,
+					  (unsigned long) rc);
 		} else {
 			error_msg_and_die("unexpected EOF");
 		}
