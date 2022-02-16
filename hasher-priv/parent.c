@@ -185,10 +185,12 @@ handle_x11_ctl(void)
 	}
 
 	x11_fake_data = xmalloc(x11_data_len);
-	int     fd = fd_recv(ctl_fd, x11_fake_data, x11_data_len);
 
+	int fd = fd_recv(ctl_fd, x11_fake_data, x11_data_len);
 	if (fd >= 0)
 		fd = x11_check_listen(fd);
+	else
+		fputc('\r', stderr);
 
 	if (!memcmp(x11_saved_data, x11_fake_data, x11_data_len))
 	{

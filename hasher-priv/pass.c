@@ -102,27 +102,26 @@ fd_recv(int ctl, char *data, size_t data_len)
 	if (rc != (ssize_t) data_len) {
 		if (rc < 0) {
 			perror_msg("recvmsg");
-			fputc('\r', stderr);
 		} else {
 			if (rc)
-				error_msg("expected size %u, got %u\r",
+				error_msg("expected size %u, got %u",
 					  (unsigned int) data_len,
 					  (unsigned int) rc);
 			else
-				error_msg("unexpected EOF\r");
+				error_msg("unexpected EOF");
 		}
 		return -1;
 	}
 
 	if (!(cmsg = CMSG_FIRSTHDR(&msg)))
 	{
-		error_msg("no message header\r");
+		error_msg("no message header");
 		return -1;
 	}
 
 	if (cmsg->cmsg_type != SCM_RIGHTS)
 	{
-		error_msg("expected type %u, got %u\r",
+		error_msg("expected type %u, got %u",
 			  SCM_RIGHTS, cmsg->cmsg_type);
 		return -1;
 	}
