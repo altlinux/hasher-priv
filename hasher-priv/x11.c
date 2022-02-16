@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root, caller or child privileges. */
 
 #include "error_prints.h"
+#include "xstring.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,8 +142,7 @@ x11_connect_unix( __attribute__ ((unused))
 
 		memset(&sun, 0, sizeof(sun));
 		sun.sun_family = AF_UNIX;
-		snprintf(sun.sun_path, sizeof sun.sun_path, "X%u",
-			 display_number);
+		xsprintf(sun.sun_path, "X%u", display_number);
 
 		if (!connect
 		    (fd, (struct sockaddr *) &sun, (socklen_t) sizeof sun))
@@ -175,7 +175,7 @@ x11_connect_inet(const char *name, unsigned display_number)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	snprintf(port_str, sizeof port_str, "%u", port_num);
+	xsprintf(port_str, "%u", port_num);
 
 	if ((rc = getaddrinfo(name, port_str, &hints, &ai_start)) != 0)
 	{
@@ -270,7 +270,7 @@ x11_check_listen(int fd)
 
 	char    path[sizeof sun.sun_path];
 
-	snprintf(path, sizeof path, "%s/%s", X11_UNIX_DIR, "X10");
+	xsprintf(path, "%s/%s", X11_UNIX_DIR, "X10");
 	if (strcmp(path, sun.sun_path))
 	{
 		error_msg("getsockname: path %s, got %*s\r",
