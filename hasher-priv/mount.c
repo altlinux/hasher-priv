@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "file_config.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -174,41 +175,11 @@ static struct mnt_ent **var_fstab;
 static size_t var_fstab_size;
 
 static void
-load_fstab(void)
+fread_fstab(FILE *fp, const char *name __attribute__((unused)))
 {
-	safe_chdir("/", stat_root_ok_validator);
-	safe_chdir("etc/hasher-priv", stat_root_ok_validator);
-
-	const char *name = "fstab";
-	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
-
-	if (fd < 0)
-		perror_msg_and_die("open: %s", name);
-	safe_chdir("/", stat_root_ok_validator);
-
-	struct stat st;
-
-	if (fstat(fd, &st) < 0)
-		perror_msg_and_die("fstat: %s", name);
-
-	stat_root_ok_validator(&st, name);
-
-	if (!S_ISREG(st.st_mode))
-		error_msg_and_die("%s: not a regular file", name);
-
-	if (st.st_size > MAX_CONFIG_SIZE)
-		error_msg_and_die("%s: file too large: %lu",
-				  name, (unsigned long) st.st_size);
-
-	FILE   *fp = fdopen(fd, "r");
-
-	if (!fp)
-		perror_msg_and_die("fdopen: %s", name);
-
 	struct mntent *ent;
 
-	while ((ent = getmntent(fp)))
-	{
+	while ((ent = getmntent(fp))) {
 		struct mnt_ent *e = xmalloc(sizeof(*e));
 
 		e->mnt_fsname = xstrdup(ent->mnt_fsname);
@@ -220,8 +191,15 @@ load_fstab(void)
 					  sizeof(*var_fstab));
 		var_fstab[var_fstab_size++] = e;
 	}
+}
 
-	(void) fclose(fp);
+static void
+setup_fstab(void)
+{
+	safe_chdir("/", stat_root_ok_validator);
+	safe_chdir("etc/hasher-priv", stat_root_ok_validator);
+	load_config("fstab", fread_fstab);
+	safe_chdir("/", stat_root_ok_validator);
 }
 
 static int
@@ -314,7 +292,7 @@ setup_mountpoints(void)
 	    errno != EINVAL)
 		perror_msg_and_die("mount MS_SLAVE: %s", chroot_path);
 
-	load_fstab();
+	setup_fstab();
 
 	xmount(lookup_mount_entry("/dev"));
 

@@ -54,6 +54,7 @@ SRC =	\
 	error_prints.c	\
 	fd_set.c	\
 	fds.c		\
+	file_config.c	\
 	getconf.c	\
 	getugid.c	\
 	hasher-priv.c	\

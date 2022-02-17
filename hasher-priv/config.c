@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "file_config.h"
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -361,7 +362,7 @@ parse_prefix_list(const char *name, const char *value, const char *filename)
 }
 
 static void
-set_config(const char *name, const char *value, const char *filename)
+set_caller_name_value(const char *name, const char *value, const char *filename)
 {
 	const char rlim_prefix[] = "rlimit_";
 	const char wlim_prefix[] = "wlimit_";
@@ -397,88 +398,16 @@ set_config(const char *name, const char *value, const char *filename)
 }
 
 static void
-read_config(FILE *fp, const char *name)
+fread_caller_config(FILE *fp, const char *fname)
 {
-	char    buf[BUFSIZ];
-	unsigned line;
-
-	for (line = 1; fgets(buf, BUFSIZ, fp); ++line)
-	{
-		const char *start, *left;
-		char   *eq, *right, *end;
-
-		for (start = buf; *start && isspace(*start); ++start)
-			;
-
-		if (!*start || '#' == *start)
-			continue;
-
-		if (!(eq = strchr(start, '=')))
-			error_msg_and_die("%s: syntax error at line %u",
-					  name, line);
-
-		left = start;
-		right = eq + 1;
-
-		for (; eq > left; --eq)
-			if (!isspace(eq[-1]))
-				break;
-
-		if (left == eq)
-			error_msg_and_die("%s: syntax error at line %u",
-					  name, line);
-
-		*eq = '\0';
-		end = right + strlen(right);
-
-		for (; right < end; ++right)
-			if (!isspace(*right))
-				break;
-
-		for (; end > right; --end)
-			if (!isspace(end[-1]))
-				break;
-
-		*end = '\0';
-		set_config(left, right, name);
-	}
-
-	if (ferror(fp))
-		perror_msg_and_die("fgets: %s", name);
+	fread_config_name_value(fp, fname, set_caller_name_value);
 }
 
 static void
-load_config(const char *name)
+load_caller_config(const char *fname)
 {
-	struct stat st;
-	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
-
-	if (fd < 0)
-		perror_msg_and_die("open: %s", name);
-
-	if (fstat(fd, &st) < 0)
-		perror_msg_and_die("fstat: %s", name);
-
-	stat_root_ok_validator(&st, name);
-
-	if (!S_ISREG(st.st_mode))
-		error_msg_and_die("%s: not a regular file", name);
-
-	if (st.st_size > MAX_CONFIG_SIZE)
-		error_msg_and_die("%s: file too large: %lu",
-				  name, (unsigned long) st.st_size);
-
-	FILE *fp = fdopen(fd, "r");
-	if (!fp)
-		perror_msg_and_die("fdopen: %s", name);
-
-
-	read_config(fp, name);
-
-	if (fclose(fp))
-		perror_msg_and_die("fclose: %s", name);
-
-	caller_config_file_name = name;
+	load_config(fname, fread_caller_config);
+	caller_config_file_name = fname;
 }
 
 static void
@@ -528,10 +457,10 @@ configure(void)
 {
 	safe_chdir("/", stat_root_ok_validator);
 	safe_chdir("etc/hasher-priv", stat_root_ok_validator);
-	load_config("system");
+	load_caller_config("system");
 
 	safe_chdir("user.d", stat_root_ok_validator);
-	load_config(caller_user);
+	load_caller_config(caller_user);
 
 	if (caller_num) {
 		/* Discard user1 and user2. */
@@ -541,7 +470,7 @@ configure(void)
 		free((void *) change_user2);
 		change_user2 = 0;
 
-		load_config(xasprintf("%s:%u", caller_user, caller_num));
+		load_caller_config(xasprintf("%s:%u", caller_user, caller_num));
 	}
 
 	safe_chdir("/", stat_root_ok_validator);
