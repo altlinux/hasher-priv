@@ -1,11 +1,11 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  The chdir-with-validation module for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * chdir-with-validation module for the hasher-priv project.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "error_prints.h"
 #include <errno.h>
@@ -39,11 +39,11 @@ is_changed(struct stat *st1, struct stat *st2)
 /*
  * Change the current working directory
  * using lstat+validate+chdir+lstat+compare technique.
+ *
+ * This function may be executed with root privileges.
  */
-
-/* This function may be executed with root privileges. */
 static void
-safe_chdir_simple(const char *name, VALIDATE_FPTR validator)
+safe_chdir_component(const char *name, VALIDATE_FPTR validator)
 {
 	struct stat st1, st2;
 	const char *what;
@@ -70,23 +70,21 @@ safe_chdir_simple(const char *name, VALIDATE_FPTR validator)
 }
 
 /*
- * Change the current working directory
- * using lstat+validate+chdir+lstat+compare technique.
+ * Change the current working directory using
+ * lstat+validate+chdir+lstat+compare technique.
  * If the path is relative, chdir to each path element sequentially.
+ *
+ * This function may be executed with root privileges.
  */
-
-/* This function may be executed with root privileges. */
 void
 safe_chdir(const char *path, VALIDATE_FPTR validator)
 {
 	if (path[0] == '/' || !strchr(path, '/'))
-		safe_chdir_simple(path, validator);
-	else
-	{
-		char   *elem, *p = xstrdup(path);
-
-		for (elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
-			safe_chdir_simple(elem, validator);
+		safe_chdir_component(path, validator);
+	else {
+		char *p = xstrdup(path);
+		for (char *elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
+			safe_chdir_component(elem, validator);
 		free(p);
 	}
 }
@@ -95,9 +93,9 @@ safe_chdir(const char *path, VALIDATE_FPTR validator)
  * Ensure that owner is caller_uid:change_gid1,
  * S_IWOTH bit is not set, and
  * S_IWGRP bit is set only when S_ISVTX bit is also set.
+ *
+ * This function may be executed with caller privileges.
  */
-
-/* This function may be executed with caller privileges. */
 void
 stat_caller_ok_validator(struct stat *st, const char *name)
 {
@@ -118,9 +116,9 @@ stat_caller_ok_validator(struct stat *st, const char *name)
 /*
  * Ensure that owner is root and permissions contain no
  * group or world writable bits set.
+ *
+ * This function may be executed with root privileges.
  */
-
-/* This function may be executed with root privileges. */
 void
 stat_root_ok_validator(struct stat *st, const char *name)
 {
