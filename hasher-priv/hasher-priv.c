@@ -40,7 +40,7 @@ main(int ac, const char *av[])
 		perror_msg_and_die("clearenv");
 
 	/* Load config according to caller information. */
-	configure();
+	configure_caller();
 
 	/* Finally, execute choosen task. */
 	switch (task)

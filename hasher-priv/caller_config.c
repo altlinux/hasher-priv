@@ -1,19 +1,18 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  Configuration support module for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * Caller configuration module for the hasher-priv project.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
 #include "file_config.h"
+#include "opt_parse.h"
 #include <errno.h>
-#include <ctype.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -105,19 +104,6 @@ change_rlimit_t change_rlimit[] = {
 
 work_limit_t wlimit;
 
-static void __attribute__ ((noreturn))
-bad_option_name(const char *optname, const char *filename)
-{
-	error_msg_and_die("%s: unrecognized option: %s", filename, optname);
-}
-
-static void __attribute__ ((noreturn))
-bad_option_value(const char *optname, const char *value, const char *filename)
-{
-	error_msg_and_die("%s: invalid value for \"%s\" option: %s",
-			  filename, optname, value);
-}
-
 static  mode_t
 str2umask(const char *name, const char *value, const char *filename)
 {
@@ -125,11 +111,11 @@ str2umask(const char *name, const char *value, const char *filename)
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value(name, value, filename);
+		opt_bad_value(name, value, filename);
 
 	n = strtoul(value, &p, 8);
 	if (!p || *p || n > 0777)
-		bad_option_value(name, value, filename);
+		opt_bad_value(name, value, filename);
 
 	return (mode_t) n;
 }
@@ -141,11 +127,11 @@ str2nice(const char *name, const char *value, const char *filename)
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value(name, value, filename);
+		opt_bad_value(name, value, filename);
 
 	n = strtoul(value, &p, 10);
 	if (!p || *p || n > 19)
-		bad_option_value(name, value, filename);
+		opt_bad_value(name, value, filename);
 
 	return (int) n;
 }
@@ -157,7 +143,7 @@ str2rlim(const char *name, const char *value, const char *filename)
 	unsigned long long n;
 
 	if (!*value)
-		bad_option_value(name, value, filename);
+		opt_bad_value(name, value, filename);
 
 	if (!strcasecmp(value, "inf"))
 		return RLIM_INFINITY;
@@ -165,7 +151,7 @@ str2rlim(const char *name, const char *value, const char *filename)
 	errno = 0;
 	n = strtoull(value, &p, 10);
 	if (!p || *p || n > ULONG_MAX || (n == ULLONG_MAX && errno == ERANGE))
-		bad_option_value(name, value, filename);
+		opt_bad_value(name, value, filename);
 
 	return n;
 }
@@ -187,7 +173,7 @@ set_rlim(const char *name, const char *value, int hard,
 			return;
 		}
 
-	bad_option_name(optname, filename);
+	opt_bad_name(optname, filename);
 }
 
 static void
@@ -204,31 +190,14 @@ parse_rlim(const char *name, const char *value, const char *optname,
 		set_rlim(name + sizeof(soft_prefix) - 1, value, 0,
 			 optname, filename);
 	else
-		bad_option_name(optname, filename);
-}
-
-static unsigned long
-str2wlim(const char *name, const char *value, const char *filename)
-{
-	char   *p = 0;
-	unsigned long long n;
-
-	if (!*value)
-		bad_option_value(name, value, filename);
-
-	errno = 0;
-	n = strtoull(value, &p, 10);
-	if (!p || *p || n > ULONG_MAX || (n == ULLONG_MAX && errno == ERANGE))
-		bad_option_value(name, value, filename);
-
-	return (unsigned long) n;
+		opt_bad_name(optname, filename);
 }
 
 static void
 modify_wlim(unsigned long *pval, const char *value,
 	    const char *optname, const char *filename, int is_system)
 {
-	unsigned long val = str2wlim(optname, value, filename);
+	unsigned long val = opt_str2ul(optname, value, filename);
 
 	if (is_system || *pval == 0 || (val > 0 && val < *pval))
 		*pval = val;
@@ -247,7 +216,7 @@ parse_wlim(const char *name, const char *value,
 	else if (!strcasecmp("bytes_written", name))
 		pval = &wlimit.bytes_written;
 	else
-		bad_option_name(optname, filename);
+		opt_bad_name(optname, filename);
 
 	modify_wlim(pval, value, optname, filename, 1);
 }
@@ -282,24 +251,9 @@ parse_str_list(const char *value, str_list_t *s)
 	if (s->len)
 		qsort(s->list, s->len, sizeof(*s->list), strp_cmp);
 	/* clear duplicate entries */
-        for (size_t i = 1; i < s->len; ++i)
+	for (size_t i = 1; i < s->len; ++i)
 		if (!strcmp(s->list[i - 1], s->list[i]))
 			s->list[i - 1] = 0;
-}
-
-static int
-str2bool(const char *name, const char *value, const char *filename)
-{
-	if (value[0] == '\0' || !strcasecmp(value, "no")
-	    || !strcasecmp(value, "false") || !strcasecmp(value, "0"))
-		return 0;
-	if (!strcasecmp(value, "yes") || !strcasecmp(value, "true")
-	    || !strcasecmp(value, "1"))
-		return 1;
-
-	error_msg_and_die("%s: invalid value \"%s\" for \"%s\" option",
-			  filename, value, name);
-	return 0;
 }
 
 static char *
@@ -386,7 +340,7 @@ set_caller_name_value(const char *name, const char *value, const char *filename)
 	else if (!strcasecmp("allowed_mountpoints", name))
 		parse_str_list(value, &allowed_mountpoints);
 	else if (!strcasecmp("allow_ttydev", name))
-		(void) str2bool(name, value, filename);	/* obsolete */
+		(void) opt_str2bool(name, value, filename);	/* obsolete */
 	else if (!strncasecmp(rlim_prefix, name, sizeof(rlim_prefix) - 1))
 		parse_rlim(name + sizeof(rlim_prefix) - 1, value, name,
 			   filename);
@@ -394,7 +348,7 @@ set_caller_name_value(const char *name, const char *value, const char *filename)
 		parse_wlim(name + sizeof(wlim_prefix) - 1, value, name,
 			   filename);
 	else
-		bad_option_name(name, filename);
+		opt_bad_name(name, filename);
 }
 
 static void
@@ -417,43 +371,43 @@ check_user(const char *user_name, uid_t * user_uid, gid_t * user_gid,
 	struct passwd *pw;
 
 	if (!user_name || !*user_name)
-		error_msg_and_die("config: undefined: %s", name);
+		error_msg_and_die("undefined: %s", name);
 
 	pw = getpwnam(user_name);
 
 	if (!pw || !pw->pw_name)
-		error_msg_and_die("config: %s: %s lookup failure",
+		error_msg_and_die("%s: %s lookup failure",
 				  name, user_name);
 
 	if (strcmp(user_name, pw->pw_name))
-		error_msg_and_die("config: %s: %s: name mismatch",
+		error_msg_and_die("%s: %s: name mismatch",
 				  name, user_name);
 
 	if (pw->pw_uid < MIN_CHANGE_UID)
-		error_msg_and_die("config: %s: %s: invalid uid: %u",
+		error_msg_and_die("%s: %s: invalid uid: %u",
 				  name, user_name, pw->pw_uid);
 	*user_uid = pw->pw_uid;
 
 	if (pw->pw_gid < MIN_CHANGE_GID)
-		error_msg_and_die("config: %s: %s: invalid gid: %u",
+		error_msg_and_die("%s: %s: invalid gid: %u",
 				  name, user_name, pw->pw_gid);
 	*user_gid = pw->pw_gid;
 
 	if (!strcmp(caller_user, user_name))
-		error_msg_and_die("config: %s: %s: name coincides with caller",
+		error_msg_and_die("%s: %s: name coincides with caller",
 				  name, user_name);
 
 	if (caller_uid == *user_uid)
-		error_msg_and_die("config: %s: %s: uid coincides with caller",
+		error_msg_and_die("%s: %s: uid coincides with caller",
 				  name, user_name);
 
 	if (caller_gid == *user_gid)
-		error_msg_and_die("config: %s: %s: gid coincides with caller",
+		error_msg_and_die("%s: %s: gid coincides with caller",
 				  name, user_name);
 }
 
 void
-configure(void)
+configure_caller(void)
 {
 	safe_chdir("/", stat_root_ok_validator);
 	safe_chdir("etc/hasher-priv", stat_root_ok_validator);
@@ -479,15 +433,13 @@ configure(void)
 	check_user(change_user2, &change_uid2, &change_gid2, "user2");
 
 	if (!strcmp(change_user1, change_user2))
-		error_msg_and_die("config: user1 coincides with user2");
+		error_msg_and_die("user1 coincides with user2");
 
 	if (change_uid1 == change_uid2)
-		error_msg_and_die("config: uid of user1 coincides with"
-				  " uid of user2");
+		error_msg_and_die("uid of user1 coincides with uid of user2");
 
 	if (change_gid1 == change_gid2)
-		error_msg_and_die("config: gid of user1 coincides with"
-				  " gid of user2");
+		error_msg_and_die("gid of user1 coincides with gid of user2");
 }
 
 void
@@ -508,10 +460,10 @@ parse_env(void)
 			    "environment", 0);
 
 	if ((e = getenv("makedev_console")))
-		makedev_console = str2bool("makedev_console", e, "environment");
+		makedev_console = opt_str2bool("makedev_console", e, "environment");
 
 	if ((e = getenv("use_pty")))
-		use_pty = str2bool("use_pty", e, "environment");
+		use_pty = opt_str2bool("use_pty", e, "environment");
 
 	if (use_pty && (e = getenv("TERM")) && *e)
 		term = xstrdup(e);
@@ -541,13 +493,13 @@ parse_env(void)
 		x11_drop_display();
 
 	if ((e = getenv("share_ipc")))
-		share_ipc = str2bool("share_ipc", e, "environment");
+		share_ipc = opt_str2bool("share_ipc", e, "environment");
 
 	if ((e = getenv("share_network")))
-		share_network = str2bool("share_network", e, "environment");
+		share_network = opt_str2bool("share_network", e, "environment");
 
 	if ((e = getenv("share_uts")))
-		share_uts = str2bool("share_uts", e, "environment");
+		share_uts = opt_str2bool("share_uts", e, "environment");
 
 	if ((e = getenv("requested_mountpoints")))
 		parse_str_list(e, &requested_mountpoints);

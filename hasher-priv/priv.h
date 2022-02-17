@@ -60,7 +60,7 @@ int     open_pty(int *slave_fd, int chrooted, int verbose_error);
 task_t  parse_cmdline(int ac, const char *av[], const char ***task_args);
 void    init_caller_data(void);
 void    parse_env(void);
-void    configure(void);
+void    configure_caller(void);
 void    ch_uid(uid_t uid, uid_t *save);
 void    ch_gid(gid_t gid, gid_t *save);
 void    chdiruid(const char *path, VALIDATE_FPTR validator);

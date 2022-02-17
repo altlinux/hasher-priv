@@ -43,13 +43,13 @@ LDLIBS =
 
 SRC =	\
 	caller.c	\
+	caller_config.c	\
 	chdir.c		\
 	chdiruid.c	\
 	chid.c		\
 	child.c		\
 	chrootuid.c	\
 	cmdline.c	\
-	config.c	\
 	die.c		\
 	error_prints.c	\
 	fd_set.c	\
@@ -67,6 +67,7 @@ SRC =	\
 	mount.c		\
 	net.c		\
 	nullify_stdin.c	\
+	opt_parse.c	\
 	parent.c	\
 	pass.c		\
 	pty.c		\
