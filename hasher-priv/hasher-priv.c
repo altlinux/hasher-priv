@@ -13,6 +13,7 @@
 #include "fds.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "priv.h"
 
@@ -30,7 +31,7 @@ main(int ac, const char *av[])
 		error_msg_and_die("%s: invalid chroot path", chroot_path);
 
 	/* Third, initialize data related to caller. */
-	init_caller_data();
+	init_caller_data(getuid(), getgid());
 
 	/* 4th, parse environment for config options. */
 	parse_env();

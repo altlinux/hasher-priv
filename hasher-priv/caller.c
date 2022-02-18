@@ -30,13 +30,13 @@ gid_t caller_gid;
  * Initialize caller_user, caller_uid, caller_gid and caller_home.
  */
 void
-init_caller_data(void)
+init_caller_data(uid_t uid, gid_t gid)
 {
-	caller_uid = getuid();
+	caller_uid = uid;
 	if (caller_uid < MIN_CHANGE_UID)
 		error_msg_and_die("caller has invalid uid: %u", caller_uid);
 
-	caller_gid = getgid();
+	caller_gid = gid;
 	if (caller_gid < MIN_CHANGE_GID)
 		error_msg_and_die("caller has invalid gid: %u", caller_gid);
 

@@ -58,7 +58,7 @@ void    restore_tty(void);
 int     tty_copy_winsize(int master_fd, int slave_fd);
 int     open_pty(int *slave_fd, int chrooted, int verbose_error);
 task_t  parse_cmdline(int ac, const char *av[], const char ***task_args);
-void    init_caller_data(void);
+void    init_caller_data(uid_t uid, gid_t gid);
 void    parse_env(void);
 void    configure_caller(void);
 void    ch_uid(uid_t uid, uid_t *save);
