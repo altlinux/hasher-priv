@@ -1,15 +1,17 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  The caller data initialization module for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * The caller data initialization module for the hasher-priv project.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "xmalloc.h"
+
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
@@ -18,7 +20,6 @@
 #include <pwd.h>
 
 #include "priv.h"
-#include "xmalloc.h"
 
 const char *caller_user;
 const char *caller_home;
@@ -31,9 +32,6 @@ gid_t caller_gid;
 void
 init_caller_data(void)
 {
-	const char *logname;
-	struct passwd *pw = 0;
-
 	caller_uid = getuid();
 	if (caller_uid < MIN_CHANGE_UID)
 		error_msg_and_die("caller has invalid uid: %u", caller_uid);
@@ -42,19 +40,7 @@ init_caller_data(void)
 	if (caller_gid < MIN_CHANGE_GID)
 		error_msg_and_die("caller has invalid gid: %u", caller_gid);
 
-	if ((logname = getenv("LOGNAME")))
-		if (!*logname || strchr(logname, ':'))
-			logname = 0;
-
-	if (logname)
-	{
-		pw = getpwnam(logname);
-		if (caller_uid != pw->pw_uid || caller_gid != pw->pw_gid)
-			pw = 0;
-	}
-
-	if (!pw)
-		pw = getpwuid(caller_uid);
+	struct passwd *pw = getpwuid(caller_uid);
 
 	if (!pw || !pw->pw_name)
 		error_msg_and_die("caller lookup failure");
