@@ -24,8 +24,8 @@ main(int ac, const char *av[])
 	sanitize_fds();
 
 	/* Second, parse command line arguments. */
-	const char **task_args;
-	task_t task = parse_cmdline(ac, av, &task_args);
+	const char **job_args;
+	job_enum_t job = parse_cmdline(ac, av, &job_args);
 
 	if (chroot_path && *chroot_path != '/')
 		error_msg_and_die("%s: invalid chroot path", chroot_path);
@@ -43,23 +43,23 @@ main(int ac, const char *av[])
 	/* Load config according to caller information. */
 	configure_caller();
 
-	/* Finally, execute choosen task. */
-	switch (task)
+	/* Finally, execute chosen job. */
+	switch (job)
 	{
-		case TASK_GETCONF:
+		case JOB_GETCONF:
 			return do_getconf();
-		case TASK_KILLUID:
+		case JOB_KILLUID:
 			return do_killuid();
-		case TASK_GETUGID1:
+		case JOB_GETUGID1:
 			return do_getugid1();
-		case TASK_CHROOTUID1:
-			return do_chrootuid1(task_args);
-		case TASK_GETUGID2:
+		case JOB_CHROOTUID1:
+			return do_chrootuid1(job_args);
+		case JOB_GETUGID2:
 			return do_getugid2();
-		case TASK_CHROOTUID2:
-			return do_chrootuid2(task_args);
+		case JOB_CHROOTUID2:
+			return do_chrootuid2(job_args);
 		default:
-			error_msg_and_die("unknown task %d", task);
+			error_msg_and_die("unknown job %d", job);
 	}
 
 	return EXIT_FAILURE;

@@ -20,14 +20,14 @@
 
 typedef enum
 {
-	TASK_NONE = 0,
-	TASK_GETCONF,
-	TASK_KILLUID,
-	TASK_GETUGID1,
-	TASK_CHROOTUID1,
-	TASK_GETUGID2,
-	TASK_CHROOTUID2,
-} task_t;
+	JOB_NONE = 0,
+	JOB_GETCONF,
+	JOB_KILLUID,
+	JOB_GETUGID1,
+	JOB_CHROOTUID1,
+	JOB_GETUGID2,
+	JOB_CHROOTUID2,
+} job_enum_t;
 
 typedef struct
 {
@@ -58,7 +58,7 @@ int     init_tty(void);
 void    restore_tty(void);
 int     tty_copy_winsize(int master_fd, int slave_fd);
 int     open_pty(int *slave_fd, int chrooted, int verbose_error);
-task_t  parse_cmdline(int ac, const char *av[], const char ***task_args);
+job_enum_t parse_cmdline(int ac, const char *av[], const char ***job_args);
 void    init_caller_data(uid_t uid, gid_t gid);
 void    parse_env(void);
 void    configure_caller(void);

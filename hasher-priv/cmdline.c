@@ -100,8 +100,8 @@ get_caller_num(const char *str)
 }
 
 /* Parse command line arguments. */
-task_t
-parse_cmdline(int argc, const char *argv[], const char ***task_args)
+job_enum_t
+parse_cmdline(int argc, const char *argv[], const char ***job_args)
 {
 	int     ac;
 	const char **av;
@@ -129,42 +129,42 @@ parse_cmdline(int argc, const char *argv[], const char ***task_args)
 	if (ac < 1)
 		show_usage("insufficient arguments");
 
-	*task_args = NULL;
+	*job_args = NULL;
 
 	if (!strcmp("getconf", av[0]))
 	{
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
-		return TASK_GETCONF;
+		return JOB_GETCONF;
 	} else if (!strcmp("killuid", av[0]))
 	{
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
-		return TASK_KILLUID;
+		return JOB_KILLUID;
 	} else if (!strcmp("getugid1", av[0]))
 	{
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
-		return TASK_GETUGID1;
+		return JOB_GETUGID1;
 	} else if (!strcmp("chrootuid1", av[0]))
 	{
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
-		*task_args = av + 2;
-		return TASK_CHROOTUID1;
+		*job_args = av + 2;
+		return JOB_CHROOTUID1;
 	} else if (!strcmp("getugid2", av[0]))
 	{
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
-		return TASK_GETUGID2;
+		return JOB_GETUGID2;
 	} else if (!strcmp("chrootuid2", av[0]))
 	{
 		if (ac < 3)
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
-		*task_args = av + 2;
-		return TASK_CHROOTUID2;
+		*job_args = av + 2;
+		return JOB_CHROOTUID2;
 	} else
 		show_usage("%s: invalid argument", av[0]);
 }
