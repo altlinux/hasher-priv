@@ -64,6 +64,12 @@
 #  define ATTRIBUTE_NOINLINE	/* empty */
 # endif
 
+# if GNUC_PREREQ(3, 3)
+#  define ATTRIBUTE_NONNULL(args)	__attribute__((__nonnull__ args))
+# else
+#  define ATTRIBUTE_NONNULL(args)	/* empty */
+# endif
+
 # if GNUC_PREREQ(4, 0)
 #  define ATTRIBUTE_SENTINEL	__attribute__((__sentinel__))
 # else
