@@ -39,6 +39,12 @@
 #  define ATTRIBUTE_FORMAT(args)	/* empty */
 # endif
 
+# if GNUC_PREREQ(2, 8)
+#  define ATTRIBUTE_UNUSED	__attribute__((__unused__))
+# else
+#  define ATTRIBUTE_UNUSED	/* empty */
+# endif
+
 /*
  * Evaluates to:
  * 1, if the given two types are known to be the same;
