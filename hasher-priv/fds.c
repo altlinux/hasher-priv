@@ -53,9 +53,9 @@ sys_close_range(unsigned int from, unsigned int to, unsigned int flags)
 }
 #else
 static int
-sys_close_range(unsigned int __attribute__((unused)) from,
-		unsigned int __attribute__((unused)) to,
-		unsigned int __attribute__((unused)) flags)
+sys_close_range(unsigned int from ATTRIBUTE_UNUSED,
+		unsigned int to ATTRIBUTE_UNUSED,
+		unsigned int flags ATTRIBUTE_UNUSED)
 {
 	errno = ENOSYS;
 	return -1;

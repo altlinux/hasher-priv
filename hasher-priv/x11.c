@@ -117,8 +117,7 @@ x11_closedir(void)
 /* This function may be executed with caller privileges. */
 
 static int
-x11_connect_unix( __attribute__ ((unused))
-		 const char *name, unsigned display_number)
+x11_connect_unix(const char *name ATTRIBUTE_UNUSED, unsigned display_number)
 {
 	int     fd = -1;
 

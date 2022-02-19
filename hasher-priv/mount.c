@@ -175,7 +175,7 @@ static struct mnt_ent **var_fstab;
 static size_t var_fstab_size;
 
 static void
-fread_fstab(FILE *fp, const char *name __attribute__((unused)))
+fread_fstab(FILE *fp, const char *name ATTRIBUTE_UNUSED)
 {
 	struct mntent *ent;
 

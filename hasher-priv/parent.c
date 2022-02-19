@@ -44,7 +44,7 @@ xselect(int nfds, fd_set *read_fds, fd_set *write_fds,
 }
 
 static void
-sigwinch_handler(int __attribute__((unused)) signo)
+sigwinch_handler(int signo ATTRIBUTE_UNUSED)
 {
 	++sigwinch_arrived;
 }
@@ -52,7 +52,7 @@ sigwinch_handler(int __attribute__((unused)) signo)
 static int child_rc;
 
 static void
-sigchld_handler(int __attribute__ ((unused)) signo)
+sigchld_handler(int signo ATTRIBUTE_UNUSED)
 {
 	int     status;
 	pid_t   child = child_pid;
