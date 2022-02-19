@@ -16,9 +16,9 @@ typedef void (*name_value_fn_t)(const char *name, const char *value,
 typedef void (*fread_config_fn_t)(FILE *, const char *fname);
 
 void fread_config_name_value(FILE *fp, const char *fname, name_value_fn_t)
-	__attribute__((nonnull(1, 2, 3)));
+	ATTRIBUTE_NONNULL((1, 2, 3));
 
 void load_config(const char *fname, fread_config_fn_t)
-	__attribute__((nonnull(1, 2)));
+	ATTRIBUTE_NONNULL((1, 2));
 
 #endif /* !HASHER_FILE_CONFIG_H */
