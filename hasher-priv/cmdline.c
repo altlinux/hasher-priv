@@ -19,7 +19,8 @@
 
 #include "priv.h"
 
-static void __attribute__ ((noreturn, format(printf, 1, 2)))
+ATTRIBUTE_NORETURN
+static void __attribute__ ((format(printf, 1, 2)))
 show_usage(const char *fmt, ...)
 {
 	fprintf(stderr, "%s: ", program_invocation_short_name);
@@ -35,7 +36,8 @@ show_usage(const char *fmt, ...)
 	exit(EXIT_FAILURE);
 }
 
-static void __attribute__ ((noreturn))
+ATTRIBUTE_NORETURN
+static void
 print_help(void)
 {
 	printf("Privileged helper for the hasher project.\n"
@@ -64,7 +66,8 @@ print_help(void)
 	exit(EXIT_SUCCESS);
 }
 
-static void __attribute__ ((noreturn))
+ATTRIBUTE_NORETURN
+static void
 print_version(void)
 {
 	printf("hasher-priv version %s\n"

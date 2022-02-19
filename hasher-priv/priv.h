@@ -10,6 +10,7 @@
 #ifndef PKG_BUILD_PRIV_H
 #define PKG_BUILD_PRIV_H
 
+#include "cc_compat.h"
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -67,7 +68,7 @@ void    chdiruid(const char *path, VALIDATE_FPTR validator);
 void    purge_ipc(uid_t uid1, uid_t uid2);
 void    handle_child(const char *const *argv, const char *const *env,
 		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
-	__attribute__ ((noreturn));
+	ATTRIBUTE_NORETURN;
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
 void    block_signal_handler(int no, int what);
 void    dfl_signal_handler(int no);
