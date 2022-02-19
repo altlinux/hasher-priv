@@ -20,7 +20,8 @@
 #include "priv.h"
 
 ATTRIBUTE_NORETURN
-static void __attribute__ ((format(printf, 1, 2)))
+ATTRIBUTE_FORMAT((printf, 1, 2))
+static void
 show_usage(const char *fmt, ...)
 {
 	fprintf(stderr, "%s: ", program_invocation_short_name);
