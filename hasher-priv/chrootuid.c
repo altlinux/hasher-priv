@@ -11,6 +11,7 @@
 
 #include "error_prints.h"
 #include "fds.h"
+#include "spawn_killuid.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +67,8 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 
 	if (uid < MIN_CHANGE_UID || uid == getuid())
 		error_msg_and_die("invalid uid: %u", uid);
+
+	spawn_killuid();
 
 	/*
 	 * Unshare mount namespace,

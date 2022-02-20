@@ -72,6 +72,7 @@ SRC =	\
 	pass.c		\
 	pty.c		\
 	signal.c	\
+	spawn_killuid.c	\
 	tty.c		\
 	unblock_fd.c	\
 	unshare.c	\
