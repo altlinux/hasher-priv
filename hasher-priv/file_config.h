@@ -8,6 +8,7 @@
 #ifndef HASHER_FILE_CONFIG_H
 # define HASHER_FILE_CONFIG_H
 
+#include "cc_compat.h"
 #include <stdio.h>
 
 typedef void (*name_value_fn_t)(const char *name, const char *value,
