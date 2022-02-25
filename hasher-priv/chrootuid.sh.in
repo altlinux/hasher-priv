@@ -26,7 +26,31 @@ exit_handler()
 	exit $rc
 }
 
+is_systemd_user()
+{
+	[ -d "${XDG_RUNTIME_DIR-}" ] || return
+	# https://github.com/systemd/systemd/blob/d74da762a3b1edbb7935c3b3a229db601f734125/src/core/manager.c#L944
+	[ -d "${XDG_RUNTIME_DIR-}/systemd/units" ] || return
+}
+
+detect_systemd()
+{
+	# Prepends to prefixed_argv.
+	is_systemd_user || return 0
+	local detect_s_argv_prefix
+	detect_s_argv_prefix="systemd-run --user --scope --same-dir"
+	detect_s_argv_prefix="$detect_s_argv_prefix --property=Delegate=yes"
+	# Users might want to override some of this according to their needs,
+	# or to add further arguments (e. g. slice to run in).
+	detect_s_argv_prefix="$detect_s_argv_prefix --send-sighup --collect"
+	prefixed_argv="$detect_s_argv_prefix $prefixed_argv"
+}
+
 trap 'exit 143' HUP INT QUIT PIPE TERM
 trap 'exit_handler $?' EXIT
 
-@helper@ $n chrootuid@N@ "$@"
+prefixed_argv=
+
+detect_systemd
+
+$prefixed_argv @helper@ $n chrootuid@N@ "$@"
