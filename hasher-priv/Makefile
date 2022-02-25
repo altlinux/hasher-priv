@@ -77,6 +77,7 @@ SRC_server =		\
 	caller_job.c	\
 	caller_runner.c	\
 	caller_server.c	\
+	cgroup.c	\
 	chdir.c		\
 	chdiruid.c	\
 	chid.c		\

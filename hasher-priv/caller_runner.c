@@ -16,6 +16,7 @@
 #include "caller_data.h"
 #include "caller_job.h"
 #include "caller_runner.h"
+#include "cgroup.h"
 #include "communication.h"
 #include "error_prints.h"
 #include "executors.h"
@@ -31,6 +32,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+static int
+is_job_spawning(const struct job *job)
+{
+	switch (job->type) {
+		case JOB_CHROOTUID1:
+		case JOB_CHROOTUID2:
+			return 1;
+		default:
+			return 0;
+	}
+}
 
 ATTRIBUTE_NORETURN
 static void
@@ -109,6 +122,19 @@ job_runner(struct hadaemon *d, int conn, struct job *job)
 	xclose(&d->fd_ep);
 	xclose(&d->fd_signal);
 	xclose(&d->fd_conn);
+
+	/*
+	 * If the job is a chrootuid, the service daemon will spawn
+	 * unprivileged processes on behalf of the client, and these
+	 * processes can take as much resources as they are allowed to.
+	 * Therefore, chrootuid jobs are moved to the cgroup of the client
+	 * so the cgroup regulations of the client apply to them.
+	 * Other kinds of jobs are short-lived processes that perform very
+	 * specific auxiliary tasks, they are parts of the service daemon
+	 * and remain in its cgroup.
+	 */
+	if (is_job_spawning(job))
+		join_caller_cgroup(caller_pid);
 
 	/*
 	 * As we are not going to handle signals, unblock them.
