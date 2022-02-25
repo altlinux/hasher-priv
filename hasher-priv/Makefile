@@ -70,6 +70,7 @@ SRC =	\
 	opt_parse.c	\
 	parent.c	\
 	pass.c		\
+	process.c	\
 	pty.c		\
 	signal.c	\
 	spawn_killuid.c	\

@@ -26,6 +26,7 @@
 #include <sys/wait.h>
 
 #include "priv.h"
+#include "process.h"
 #include "xmalloc.h"
 
 static volatile pid_t child_pid;
@@ -62,7 +63,7 @@ sigchld_handler(int signo ATTRIBUTE_UNUSED)
 		return;
 	child_pid = 0;
 
-	if (waitpid(child, &status, 0) != child)
+	if (waitpid_retry(child, &status, 0) != child)
 		perror_msg_and_die("waitpid");
 
 	if (WIFEXITED(status))

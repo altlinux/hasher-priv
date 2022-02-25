@@ -24,6 +24,7 @@
 
 #include "priv.h"
 #include "macros.h"
+#include "process.h"
 #include "xmalloc.h"
 
 static void
@@ -134,7 +135,7 @@ xauth_add_entry(const char *const *env)
 	{
 		int     status = 0;
 
-		if (waitpid(pid, &status, 0) != pid || !WIFEXITED(status))
+		if (waitpid_retry(pid, &status, 0) != pid || !WIFEXITED(status))
 			return 1;
 		return WEXITSTATUS(status);
 	}

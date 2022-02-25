@@ -12,6 +12,7 @@
 
 #include "error_prints.h"
 #include "spawn_killuid.h"
+#include "process.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -32,11 +33,8 @@ spawn_killuid(void)
 
 	for (;;) {
 		int status;
-		if (waitpid(pid, &status, 0) < 0) {
-			if (errno == EINTR)
-				continue;
+		if (waitpid_retry(pid, &status, 0) < 0)
 			perror_msg_and_die("waitpid");
-		}
 		if (WIFEXITED(status)) {
 			if (WEXITSTATUS(status) == 0)
 				break;
