@@ -17,14 +17,21 @@
 
 /* This function may be executed with root privileges. */
 void
+xsigprocmask(int what, const sigset_t *set, sigset_t *oldset)
+{
+	if (sigprocmask(what, set, oldset) < 0)
+		perror_msg_and_die("sigprocmask");
+}
+
+/* This function may be executed with root privileges. */
+void
 block_signal_handler(int no, int what)
 {
 	sigset_t set;
 
 	sigemptyset(&set);
 	sigaddset(&set, no);
-	if (sigprocmask(what, &set, 0) < 0)
-		perror_msg_and_die("sigprocmask");
+	xsigprocmask(what, &set, 0);
 }
 
 /* This function may be executed with caller or child privileges. */
