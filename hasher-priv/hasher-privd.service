@@ -9,6 +9,8 @@ Group=hashman
 RuntimeDirectory=hasher-priv
 RuntimeDirectoryMode=0710
 Restart=on-failure
+# preserve running jobs over daemon restarts and package upgrades
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
