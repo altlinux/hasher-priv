@@ -180,8 +180,7 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 		char   *term_env = xasprintf("TERM=%s", term ? : "dumb");
 		const char *x11_env = x11_display ? "DISPLAY=:10.0" : 0;
 		const char *const env[] = {
-			ehome, euser, epath, term_env, x11_env,
-			"SHELL=/bin/sh", 0
+			ehome, euser, epath, term_env, x11_env, 0
 		};
 
 		handle_child(argv, env, slave,
