@@ -152,3 +152,16 @@ cloexec_fds(void)
 
 	errno = 0;
 }
+
+int
+xclose(int *fd)
+{
+	if (*fd < 0)
+		return 0;
+
+	if (close(*fd) < 0)
+		return -1;
+
+	*fd = -1;
+	return 0;
+}
