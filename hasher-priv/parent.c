@@ -200,11 +200,7 @@ handle_x11_ctl(void)
 		free(x11_saved_data);
 		free(x11_fake_data);
 		x11_saved_data = x11_fake_data = 0;
-		if (fd >= 0)
-		{
-			(void) close(fd);
-			fd = -1;
-		}
+		xclose(&fd);
 	}
 
 	return fd;
@@ -338,8 +334,7 @@ handle_io(io_std_t io)
 			x11_closedir();
 			error_msg("X11 forwarding disabled\r");
 		}
-		(void) close(ctl_fd);
-		ctl_fd = -1;
+		xclose(&ctl_fd);
 	}
 
 	return EXIT_SUCCESS;
@@ -405,7 +400,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 			break;
 
 	/* Close master pty descriptor, thus sending HUP to child session. */
-	(void) close(pty_fd);
+	xclose(&pty_fd);
 
 	dfl_signal_handler(SIGWINCH);
 	wait_child();

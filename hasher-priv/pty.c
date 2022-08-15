@@ -9,6 +9,7 @@
 /* Code in this file is executed with root privileges. */
 
 #include "error_prints.h"
+#include "fds.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -89,8 +90,8 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	goto out;
 
 err:
-	close(slave), slave = -1;
-	close(ptmx), ptmx = -1;
+	xclose(&slave);
+	xclose(&ptmx);
 
 out:
 	free(ptsname);

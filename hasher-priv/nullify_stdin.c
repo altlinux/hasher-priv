@@ -9,8 +9,9 @@
 
 /* Code in this file may be executed with caller or child privileges. */
 
-#include "nullify_stdin.h"
 #include "error_prints.h"
+#include "fds.h"
+#include "nullify_stdin.h"
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -21,13 +22,13 @@ nullify_stdin(void)
 
 	if (pipe(pipe_fds))
 		perror_msg_and_die("pipe");
-	if (close(pipe_fds[1]))
+	if (xclose(&pipe_fds[1]))
 		perror_msg_and_die("close");
 
 	if (pipe_fds[0] != STDIN_FILENO) {
 		if (dup2(pipe_fds[0], STDIN_FILENO) != STDIN_FILENO)
 			perror_msg_and_die("dup2");
-		if (close(pipe_fds[0]))
+		if (xclose(&pipe_fds[0]))
 			perror_msg_and_die("close");
 	}
 

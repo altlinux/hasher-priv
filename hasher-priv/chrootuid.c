@@ -114,8 +114,8 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 		int     master2 = open_pty(&slave2, 1, master < 0);
 		if (master2 > master)
 		{
-			close(master), master = master2;
-			close(slave), slave = slave2;
+			xclose(&master), master = master2;
+			xclose(&slave), slave = slave2;
 		}
 	}
 
@@ -138,10 +138,10 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 			xasprintf("%s: %s",
 				  program_invocation_short_name, "parent");
 
-		if (close(slave)
+		if (xclose(&slave)
 		    || (!use_pty
-			&& (close(pipe_out[1]) || close(pipe_err[1])))
-		    || (x11_display && close(ctl[1])))
+			&& (xclose(&pipe_out[1]) || xclose(&pipe_err[1])))
+		    || (x11_display && xclose(&ctl[1])))
 			perror_msg_and_die("close");
 
 		if (setgid(caller_gid) < 0)
@@ -160,10 +160,10 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 			xasprintf("%s: %s",
 				  program_invocation_short_name, "child");
 
-		if (close(master)
+		if (xclose(&master)
 		    || (!use_pty
-			&& (close(pipe_out[0]) || close(pipe_err[0])))
-		    || (x11_display && close(ctl[0])))
+			&& (xclose(&pipe_out[0]) || xclose(&pipe_err[0])))
+		    || (x11_display && xclose(&ctl[0])))
 			perror_msg_and_die("close");
 
 		if (share_caller_network)

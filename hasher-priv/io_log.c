@@ -10,6 +10,7 @@
 /* Code in this file may be executed with caller privileges. */
 
 #include "error_prints.h"
+#include "fds.h"
 #include "fd_set.h"
 #include "io_loop.h"
 #include "unblock_fd.h"
@@ -48,16 +49,15 @@ fd_free(const int fd)
 {
 	size_t  i;
 
-	for (i = 0; i < fd_count; ++i)
-		if (fd == fd_list[i])
-			break;
+	for (i = 0; i < fd_count; ++i) {
+		if (fd == fd_list[i]) {
+			xclose(&fd_list[i]);
+			return;
+		}
+	}
 
-	if (i == fd_count)
-		error_msg_and_die("descriptor %d not found, count=%lu",
-				  fd, (unsigned long) fd_count);
-
-	fd_list[i] = -1;
-	(void) close(fd);
+	error_msg_and_die("descriptor %d not found, count=%lu",
+			  fd, (unsigned long) fd_count);
 }
 
 void

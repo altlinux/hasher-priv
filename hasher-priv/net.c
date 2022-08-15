@@ -1,4 +1,5 @@
 #include "error_prints.h"
+#include "fds.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -39,6 +40,6 @@ setup_network(void)
 	if (send(rtnetlink_sk, &req, req.n.nlmsg_len, 0) < 0)
 		perror_msg_and_die("send");
 
-	if (close(rtnetlink_sk) < 0)
+	if (xclose(&rtnetlink_sk) < 0)
 		perror_msg_and_die("close");
 }

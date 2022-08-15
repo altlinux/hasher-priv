@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root, caller or child privileges. */
 
 #include "error_prints.h"
+#include "fds.h"
 #include "xstring.h"
 #include <errno.h>
 #include <stdio.h>
@@ -50,14 +51,14 @@ unix_listen(const char *file_name)
 	if (bind(fd, (struct sockaddr *) &sun, (socklen_t) sizeof sun))
 	{
 		perror_msg("bind: %s", sun.sun_path);
-		(void) close(fd);
+		xclose(&fd);
 		return -1;
 	}
 
 	if (listen(fd, 16) < 0)
 	{
 		perror_msg("listen: %s", sun.sun_path);
-		(void) close(fd);
+		xclose(&fd);
 		return -1;
 	}
 
@@ -75,8 +76,7 @@ log_listen(void)
 
 	if (fd >= 0 && chmod(log_path, 0622)) {
 		perror_msg("chmod: %s", log_path);
-		(void) close(fd);
-		fd = -1;
+		xclose(&fd);
 	}
 
 	return fd;
@@ -107,11 +107,7 @@ static int x11_dir_fd = -1;
 void
 x11_closedir(void)
 {
-	if (x11_dir_fd >= 0)
-	{
-		close(x11_dir_fd);
-		x11_dir_fd = -1;
-	}
+	xclose(&x11_dir_fd);
 }
 
 /* This function may be executed with caller privileges. */
@@ -149,8 +145,7 @@ x11_connect_unix(const char *name ATTRIBUTE_UNUSED, unsigned display_number)
 
 		perror_msg("connect: %s", sun.sun_path);
 		fputc('\r', stderr);
-		close(fd);
-		fd = -1;
+		xclose(&fd);
 		break;
 	}
 	if (chdir("/"))
@@ -195,8 +190,7 @@ x11_connect_inet(const char *name, unsigned display_number)
 		if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0)
 		{
 			saved_errno = errno;
-			close(fd);
-			fd = -1;
+			xclose(&fd);
 			continue;
 		}
 
@@ -256,7 +250,7 @@ x11_check_listen(int fd)
 	{
 		perror_msg("getsockname");
 		fputc('\r', stderr);
-		(void) close(fd);
+		xclose(&fd);
 		return -1;
 	}
 

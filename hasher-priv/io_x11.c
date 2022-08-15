@@ -10,6 +10,7 @@
 /* Code in this file may be executed with caller privileges. */
 
 #include "error_prints.h"
+#include "fds.h"
 #include "fd_set.h"
 #include "io_loop.h"
 #include "unblock_fd.h"
@@ -70,8 +71,8 @@ io_x11_free(io_x11_t io)
 				  io, (unsigned long) io_x11_count);
 	io_x11_list[i] = 0;
 
-	(void) close(io->master_fd);
-	(void) close(io->slave_fd);
+	xclose(&io->master_fd);
+	xclose(&io->slave_fd);
 	memset(io, 0, sizeof(*io));
 	free(io);
 }
@@ -92,7 +93,7 @@ x11_handle_new(const int x11_fd, fd_set *read_fds)
 	if (connect_fd >= 0)
 		io_x11_new(connect_fd, accept_fd);
 	else
-		(void) close(accept_fd);
+		xclose(&accept_fd);
 }
 
 void

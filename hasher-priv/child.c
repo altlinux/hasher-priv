@@ -10,6 +10,7 @@
 /* Code in this file may be executed with child privileges. */
 
 #include "error_prints.h"
+#include "fds.h"
 #include "io_loop.h"
 #include "nullify_stdin.h"
 #include <errno.h>
@@ -57,12 +58,12 @@ connect_fds(int pty_fd, int pipe_out, int pipe_err)
 				   (use_pty ? pty_fd : pipe_err),
 				   STDERR_FILENO);
 
-	if (pty_fd > STDERR_FILENO)
-		close(pty_fd);
-	if (pipe_out > STDERR_FILENO)
-		close(pipe_out);
-	if (pipe_err > STDERR_FILENO)
-		close(pipe_err);
+	if (pty_fd > STDERR_FILENO && xclose(&pty_fd))
+		perror_msg_and_die("close pty_fd");
+	if (pipe_out > STDERR_FILENO && xclose(&pipe_out))
+		perror_msg_and_die("close pipe_out");
+	if (pipe_err > STDERR_FILENO && xclose(&pipe_err))
+		perror_msg_and_die("close pipe_err");
 }
 
 #define PATH_DEVURANDOM "/dev/urandom"
@@ -84,12 +85,12 @@ xauth_gen_fake(void)
 	    (ssize_t) x11_data_len)
 	{
 		perror_msg("read: %s", PATH_DEVURANDOM);
-		(void) close(fd);
 		free(x11_fake_data);
+		xclose(&fd);
 		return 0;
 	}
 
-	(void) close(fd);
+	xclose(&fd);
 
 	/* Replace original x11_key with fake one. */
 	size_t  i, key_len = 2 * x11_data_len + 1;
@@ -172,8 +173,8 @@ handle_child(const char *const *argv, const char *const *env,
 			if ((data = xauth_gen_fake())
 			    && xauth_add_entry(env) == EXIT_SUCCESS)
 				fd_send(ctl_fd, &x11_fd, 1, data, x11_data_len);
-			(void) close(x11_fd);
 			free(data);
+			xclose(&x11_fd);
 		}
 	}
 
