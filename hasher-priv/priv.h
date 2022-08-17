@@ -80,23 +80,10 @@ int     fd_recv(int ctl, int *fds, unsigned int n_fds,
 		char *data, size_t data_len) ATTRIBUTE_NONNULL((2));
 int     unix_accept(int fd);
 int     log_listen(void);
-void    x11_drop_display(void);
-int     x11_parse_display(void);
-int     x11_prepare_connect(void);
-void    x11_closedir(void);
-int     x11_listen(void);
-int     x11_connect(void);
-int     x11_check_listen(int fd);
 
 void    log_handle_new(const int log_fd, fd_set *read_fds);
 void    fds_add_log(fd_set *read_fds, int *max_fd);
 void    log_handle_select(fd_set *read_fds);
-
-void    x11_handle_new(const int x11_fd, fd_set *read_fds);
-void    fds_add_x11(fd_set *read_fds, fd_set *write_fds, int *max_fd);
-void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
-			  const char *x11_saved_data,
-			  const char *x11_fake_data);
 
 void    setup_devices(const char **vec, size_t len);
 void	setup_mountpoints(void);
@@ -120,11 +107,9 @@ extern str_list_t allowed_mountpoints;
 extern str_list_t requested_mountpoints;
 
 extern const char *term;
-extern const char *x11_display, *x11_key;
 
 extern int makedev_console;
 extern int use_pty;
-extern size_t x11_data_len;
 extern int share_caller_network;
 extern int share_ipc;
 extern int share_network;

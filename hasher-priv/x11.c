@@ -11,6 +11,7 @@
 
 #include "error_prints.h"
 #include "fds.h"
+#include "x11.h"
 #include "xstring.h"
 #include <errno.h>
 #include <stdio.h>

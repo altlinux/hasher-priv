@@ -13,6 +13,7 @@
 #include "error_prints.h"
 #include "file_config.h"
 #include "opt_parse.h"
+#include "x11.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

@@ -13,7 +13,9 @@
 #include "fds.h"
 #include "fd_set.h"
 #include "io_loop.h"
+#include "io_x11.h"
 #include "unblock_fd.h"
+#include "x11.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

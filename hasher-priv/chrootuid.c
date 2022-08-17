@@ -12,6 +12,7 @@
 #include "error_prints.h"
 #include "fds.h"
 #include "spawn_killuid.h"
+#include "x11.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
