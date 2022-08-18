@@ -12,6 +12,7 @@
 #include "error_prints.h"
 #include "fds.h"
 #include "fd_set.h"
+#include "io_log.h"
 #include "io_loop.h"
 #include "io_x11.h"
 #include "unblock_fd.h"

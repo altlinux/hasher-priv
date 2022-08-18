@@ -81,10 +81,6 @@ int     fd_recv(int ctl, int *fds, unsigned int n_fds,
 int     unix_accept(int fd);
 int     log_listen(void);
 
-void    log_handle_new(const int log_fd, fd_set *read_fds);
-void    fds_add_log(fd_set *read_fds, int *max_fd);
-void    log_handle_select(fd_set *read_fds);
-
 void    setup_devices(const char **vec, size_t len);
 void	setup_mountpoints(void);
 void	setup_network(void);
