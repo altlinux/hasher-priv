@@ -8,12 +8,9 @@
 */
 
 #include "error_prints.h"
-#include <stdio.h>
+#include "signals.h"
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
-
-#include "priv.h"
 
 /* This function may be executed with root privileges. */
 void

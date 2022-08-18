@@ -68,9 +68,6 @@ void    handle_child(const char *const *argv, const char *const *env,
 		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
 	ATTRIBUTE_NORETURN;
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
-void    xsigprocmask(int what, const sigset_t *set, sigset_t *oldset);
-void    block_signal_handler(int no, int what);
-void    dfl_signal_handler(int no);
 void    safe_chdir(const char *name, VALIDATE_FPTR validator);
 void    stat_caller_ok_validator(struct stat *st, const char *name);
 void    stat_root_ok_validator(struct stat *st, const char *name);
