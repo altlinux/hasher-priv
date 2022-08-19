@@ -1,6 +1,7 @@
-.\" Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
-.\" 
 .\" Documentation for the hasher-useradd program.
+.\"
+.\" Copyright (C) 2004-2022  Dmitry V. Levin <ldv@altlinux.org>
+.\" All rights reserved.
 .\"
 .\" SPDX-License-Identifier: GPL-2.0-or-later
 

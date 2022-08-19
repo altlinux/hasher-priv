@@ -1,11 +1,11 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  The killuid actions for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * The killuid actions for the hasher-priv project.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file may be executed with root privileges. */
 

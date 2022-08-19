@@ -1,4 +1,6 @@
 /*
+ * The C language compatibility interface for the hasher-priv project.
+ *
  * Copyright (c) 2015 Dmitry V. Levin <ldv@altlinux.org>
  * Copyright (c) 2015-2022 The strace developers.
  * All rights reserved.

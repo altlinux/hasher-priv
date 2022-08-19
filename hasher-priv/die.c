@@ -1,4 +1,6 @@
 /*
+ * The die function for the hasher-priv project.
+ *
  * Copyright (C) 2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
  *

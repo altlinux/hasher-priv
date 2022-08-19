@@ -1,10 +1,11 @@
 /*
-  Copyright (C) 2011-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  unshare(2) helpers for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * The unshare(2) helpers for the hasher-priv project.
+ *
+ * Copyright (C) 2011-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file may be executed with root privileges. */
 

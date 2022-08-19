@@ -1,4 +1,6 @@
 /*
+ * The error printing module.
+ *
  * Copyright (c) 1999-2022 The strace developers.
  * All rights reserved.
  *

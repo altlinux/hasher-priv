@@ -1,9 +1,10 @@
-.\" Copyright (C) 2004-2007, 2009  Dmitry V. Levin <ldv@altlinux.org>
-.\" 
 .\" Documentation for the hasher-priv configuration.
 .\"
+.\" Copyright (C) 2004-2022  Dmitry V. Levin <ldv@altlinux.org>
+.\" All rights reserved.
+.\"
 .\" SPDX-License-Identifier: GPL-2.0-or-later
-.\" 
+.\"
 .TH "HASHER-PRIV configuration" "5" "January 2005" "hasher-priv version @VERSION@" "ALT Linux"
 .SH NAME
 /etc/hasher\-priv/ \- configuration for the hasher\-priv program
@@ -173,9 +174,9 @@ per-user per-number subconfig files
 .SH AUTHOR
 Written by Dmitry V. Levin <ldv@altlinux.org>
 .SH "REPORTING BUGS"
-Report bugs to http://bugs.altlinux.ru/
+Report bugs to http://bugzilla.altlinux.org/
 .SH COPYRIGHT
-Copyright \(co 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
+Copyright \(co 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
 .br
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

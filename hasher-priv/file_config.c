@@ -1,5 +1,5 @@
 /*
- * File level configuration parsing for the hasher-priv project.
+ * The file level configuration parsing for the hasher-priv project.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.

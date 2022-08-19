@@ -1,5 +1,5 @@
 /*
- * Dynamic memory allocation with error checking.
+ * The dynamic memory allocation with error checking.
  *
  * Copyright (C) 2002-2019  Dmitry V. Levin <ldv@altlinux.org>
  * Copyright (c) 2015-2021 The strace developers.

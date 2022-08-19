@@ -1,10 +1,11 @@
 /*
-  Copyright (C) 2016-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  The pty opener for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * The pty opener for the hasher-priv project.
+ *
+ * Copyright (C) 2016-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file is executed with root privileges. */
 

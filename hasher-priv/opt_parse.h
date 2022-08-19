@@ -1,4 +1,6 @@
 /*
+ * The generic option parsing interface for the hasher-priv project.
+ *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
  *

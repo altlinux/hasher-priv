@@ -1,4 +1,6 @@
 /*
+ * The logging interface for the hasher-priv project.
+ *
  * Copyright (C) 2022  Dmitry V. Levin <ldv@altlinux.org>
  * Copyright (C) 2019  Alexey Gladkov <legion@altlinux.org>
  * All rights reserved.

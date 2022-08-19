@@ -1,4 +1,6 @@
 /*
+ * The xsprintf* string manipulation interface.
+ *
  * Copyright (c) 2018-2021 Eugene Syromyatnikov <evgsyr@gmail.com>
  * All rights reserved.
  *
@@ -17,7 +19,7 @@
 /**
  * Print to static buffer and die on (really unexpected) errors and overflows.
  * Shouldn't be used directly; please refer to helper macros xsnprintf and
- * xsprint instead.
+ * xsprintf instead.
  *
  * @param str    String buffer to print into.
  * @param size   Size of the string buffer in bytes.

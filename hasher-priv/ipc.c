@@ -1,11 +1,11 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  Purge all SYSV IPC objects for given uid.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * Purge all SYSV IPC objects for given uid.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file may be executed with child privileges. */
 

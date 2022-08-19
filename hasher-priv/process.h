@@ -1,4 +1,6 @@
 /*
+ * waitpid_retry interface for the hasher-priv project.
+ *
  * Copyright (C) 2022  Arseny Maslennikov <arseny@altlinux.org>
  * All rights reserved.
  *

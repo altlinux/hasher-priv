@@ -1,11 +1,11 @@
-
 /*
-  Copyright (C) 2003-2019  Dmitry V. Levin <ldv@altlinux.org>
-
-  Command line parser for the hasher-priv program.
-
-  SPDX-License-Identifier: GPL-2.0-or-later
-*/
+ * The command line parser for the hasher-priv program.
+ *
+ * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 /* Code in this file may be executed with root privileges. */
 
@@ -72,7 +72,8 @@ static void
 print_version(void)
 {
 	printf("hasher-priv version %s\n"
-	       "\nCopyright (C) 2003-2013  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "\nCopyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "\nAll rights reserved.\n"
 	       "\nThis is free software; see the source for copying conditions.\n"
 	       "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 	       "\nWritten by Dmitry V. Levin <ldv@altlinux.org> et al.\n",

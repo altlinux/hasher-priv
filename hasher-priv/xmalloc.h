@@ -1,4 +1,6 @@
 /*
+ * The dynamic memory allocation interface.
+ *
  * Copyright (c) 2001-2021 The strace developers.
  * All rights reserved.
  *

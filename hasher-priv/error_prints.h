@@ -1,4 +1,6 @@
 /*
+ * The error printing interface for the hasher-priv project.
+ *
  * Copyright (c) 2001-2022 The strace developers.
  * All rights reserved.
  *

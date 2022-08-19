@@ -1,4 +1,6 @@
 /*
+ * The chrootuid parent log I/O interface for the hasher-priv project.
+ *
  * Copyright (C) 2005-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
  *
