@@ -11,14 +11,11 @@
 
 #include "error_prints.h"
 #include "io_loop.h"
-#include <errno.h>
-#include <stdio.h>
+#include "pass.h"
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
-
-#include "priv.h"
 
 /* This function may be executed with child privileges. */
 void

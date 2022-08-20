@@ -13,6 +13,7 @@
 #include "fds.h"
 #include "io_loop.h"
 #include "nullify_stdin.h"
+#include "pass.h"
 #include "signals.h"
 #include "x11.h"
 #include <errno.h>

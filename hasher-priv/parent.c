@@ -15,6 +15,7 @@
 #include "io_log.h"
 #include "io_loop.h"
 #include "io_x11.h"
+#include "pass.h"
 #include "signals.h"
 #include "tty.h"
 #include "unblock_fd.h"
