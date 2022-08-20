@@ -61,7 +61,6 @@ int     open_pty(int *slave_fd, int chrooted, int verbose_error);
 job_enum_t parse_cmdline(int ac, const char *av[], const char ***job_args);
 void    init_caller_data(uid_t uid, gid_t gid);
 void    chdiruid(const char *path, VALIDATE_FPTR validator);
-void    purge_ipc(uid_t uid1, uid_t uid2);
 void    handle_child(const char *const *argv, const char *const *env,
 		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
 	ATTRIBUTE_NORETURN;

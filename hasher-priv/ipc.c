@@ -1,5 +1,5 @@
 /*
- * Purge all SYSV IPC objects for given uid.
+ * Purge all SYSV IPC objects for the given pair of user ids.
  *
  * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
@@ -10,6 +10,7 @@
 /* Code in this file may be executed with child privileges. */
 
 #include "error_prints.h"
+#include "ipc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,8 +18,6 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
-
-#include "priv.h"
 
 union sem_un
 {
