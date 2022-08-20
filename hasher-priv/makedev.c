@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "chid.h"
 #include "error_prints.h"
 #include "fds.h"
 #include <errno.h>
