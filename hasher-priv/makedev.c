@@ -13,6 +13,8 @@
 #include "chid.h"
 #include "error_prints.h"
 #include "fds.h"
+#include "unix.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
@@ -23,7 +25,6 @@
 #include <sys/sysmacros.h>
 
 #include "priv.h"
-#include "xmalloc.h"
 
 static void
 xmknod(const char *name, mode_t mode, unsigned major, unsigned minor)

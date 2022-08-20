@@ -77,6 +77,7 @@ SRC =	\
 	spawn_killuid.c	\
 	tty.c		\
 	unblock_fd.c	\
+	unix.c		\
 	unshare.c	\
 	x11.c		\
 	xmalloc.c	\

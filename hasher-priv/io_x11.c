@@ -15,14 +15,13 @@
 #include "io_loop.h"
 #include "io_x11.h"
 #include "unblock_fd.h"
+#include "unix.h"
 #include "x11.h"
+#include "xmalloc.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "priv.h"
-#include "xmalloc.h"
 
 struct io_x11
 {

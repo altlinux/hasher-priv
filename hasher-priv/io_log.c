@@ -15,13 +15,14 @@
 #include "io_log.h"
 #include "io_loop.h"
 #include "unblock_fd.h"
+#include "unix.h"
+#include "xmalloc.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "priv.h"
-#include "xmalloc.h"
 
 static int *fd_list;
 static size_t fd_count;
