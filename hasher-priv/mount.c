@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "chdir.h"
 #include "error_prints.h"
 #include "file_config.h"
 #include <errno.h>

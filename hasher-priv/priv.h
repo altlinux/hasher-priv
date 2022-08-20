@@ -51,17 +51,11 @@ typedef struct {
 	char *buf;
 } str_list_t;
 
-typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
-
 void    xwrite_all(int fd, const char *buffer, size_t count);
-void    chdiruid(const char *path, VALIDATE_FPTR validator);
 void    handle_child(const char *const *argv, const char *const *env,
 		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
 	ATTRIBUTE_NORETURN;
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
-void    safe_chdir(const char *name, VALIDATE_FPTR validator);
-void    stat_caller_ok_validator(struct stat *st, const char *name);
-void    stat_root_ok_validator(struct stat *st, const char *name);
 int     unix_accept(int fd);
 int     log_listen(void);
 

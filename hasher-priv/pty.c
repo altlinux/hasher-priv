@@ -10,6 +10,7 @@
 /* Code in this file is executed with root privileges. */
 
 #include "caller_data.h"
+#include "chdir.h"
 #include "chid.h"
 #include "error_prints.h"
 #include "fds.h"

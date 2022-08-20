@@ -8,6 +8,7 @@
  */
 
 #include "caller_data.h"
+#include "chdir.h"
 #include "chid.h"
 #include "error_prints.h"
 #include <stdio.h>
