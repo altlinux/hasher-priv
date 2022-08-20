@@ -12,6 +12,7 @@
 #include "chid.h"
 #include "error_prints.h"
 #include "fds.h"
+#include "pty.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,7 +22,9 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
+int
+open_pty(int *slave_fd, const enum open_pty_chrootedness chrooted,
+	 const enum open_pty_verbosity verbose_error)
 {
 	const char *dev_ptmx = "/dev/ptmx";
 	const char *pts_fmt = "/dev/pts/%u";
@@ -36,7 +39,7 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	ch_gid(caller_gid, &saved_gid);
 	ch_uid(caller_uid, &saved_uid);
 
-	if (chrooted)
+	if (chrooted == OPEN_PTY_CHROOTED)
 	{
 		static const char dev_pts_ptmx[] = "pts/ptmx";
 		const mode_t rwdev = S_IFCHR | 0666;
@@ -57,14 +60,14 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	ptmx = open(dev_ptmx, dev_open_flags);
 	if (ptmx < 0)
 	{
-		if (verbose_error)
+		if (verbose_error == OPEN_PTY_VERBOSE)
 			perror_msg("open: %s", dev_ptmx);
 		goto err;
 	}
 
 	if (ioctl(ptmx, TIOCGPTN, &num))
 	{
-		if (verbose_error)
+		if (verbose_error == OPEN_PTY_VERBOSE)
 			perror_msg("ioctl TIOCGPTN: %s", dev_ptmx);
 		goto err;
 	}
@@ -75,7 +78,7 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	num = 0;
 	if (ioctl(ptmx, TIOCSPTLCK, &num))
 	{
-		if (verbose_error)
+		if (verbose_error == OPEN_PTY_VERBOSE)
 			perror_msg("ioctl TIOCSPTLCK: %s", dev_ptmx);
 		goto err;
 	}
@@ -84,7 +87,7 @@ int open_pty(int *slave_fd, const int chrooted, const int verbose_error)
 	slave = open(ptsname, dev_open_flags);
 	if (slave < 0)
 	{
-		if (verbose_error)
+		if (verbose_error == OPEN_PTY_VERBOSE)
 			perror_msg("open: %s", ptsname);
 		goto err;
 	}
@@ -97,7 +100,7 @@ err:
 
 out:
 	free(ptsname);
-	if (chrooted && chdir("/"))
+	if ((chrooted == OPEN_PTY_CHROOTED) && chdir("/"))
 		perror_msg_and_die("chdir: %s", "/");
 	ch_uid(saved_uid, 0);
 	ch_gid(saved_gid, 0);

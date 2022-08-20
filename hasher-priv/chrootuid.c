@@ -11,6 +11,7 @@
 
 #include "error_prints.h"
 #include "fds.h"
+#include "pty.h"
 #include "signals.h"
 #include "spawn_killuid.h"
 #include "x11.h"
@@ -105,15 +106,17 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 		perror_msg_and_die("setgroups");
 
 	/* Always create pty, necessary for ioctl TIOCSCTTY in the child. */
-	master = open_pty(&slave, 0, 1);
+	master = open_pty(&slave, OPEN_PTY_UNCHROOTED, OPEN_PTY_VERBOSE);
 
 	if (chroot(".") < 0)
 		perror_msg_and_die("chroot: %s", chroot_path);
 
 	/* Try to create another pty inside chroot. */
 	{
-		int     slave2 = -1;
-		int     master2 = open_pty(&slave2, 1, master < 0);
+		int slave2 = -1;
+		int master2 =
+			open_pty(&slave2, OPEN_PTY_CHROOTED,
+				 master < 0 ? OPEN_PTY_VERBOSE : OPEN_PTY_SILENT);
 		if (master2 > master)
 		{
 			xclose(&master), master = master2;

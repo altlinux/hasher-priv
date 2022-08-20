@@ -54,7 +54,6 @@ typedef struct {
 typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
 
 void    xwrite_all(int fd, const char *buffer, size_t count);
-int     open_pty(int *slave_fd, int chrooted, int verbose_error);
 job_enum_t parse_cmdline(int ac, const char *av[], const char ***job_args);
 void    init_caller_data(uid_t uid, gid_t gid);
 void    chdiruid(const char *path, VALIDATE_FPTR validator);
