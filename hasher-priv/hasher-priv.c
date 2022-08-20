@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "cmdline.h"
 #include "priv.h"
 
 int

@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <limits.h>
 
+#include "cmdline.h"
 #include "priv.h"
 
 ATTRIBUTE_NORETURN
