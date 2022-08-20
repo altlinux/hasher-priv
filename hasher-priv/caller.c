@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "caller_data.h"
 #include "error_prints.h"
 #include "xmalloc.h"
 

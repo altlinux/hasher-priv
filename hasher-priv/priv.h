@@ -54,7 +54,6 @@ typedef struct {
 typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
 
 void    xwrite_all(int fd, const char *buffer, size_t count);
-void    init_caller_data(uid_t uid, gid_t gid);
 void    chdiruid(const char *path, VALIDATE_FPTR validator);
 void    handle_child(const char *const *argv, const char *const *env,
 		     int pty_fd, int pipe_out, int pipe_err, int ctl_fd)
@@ -101,9 +100,6 @@ extern int dev_pts_mounted;
 extern const char *const *chroot_prefix_list;
 extern const char *chroot_prefix_path;
 extern const char *caller_config_file_name;
-extern const char *caller_user, *caller_home;
-extern uid_t caller_uid;
-extern gid_t caller_gid;
 extern unsigned caller_num;
 
 extern const char *change_user1, *change_user2;

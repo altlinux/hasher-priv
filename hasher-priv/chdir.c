@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "caller_data.h"
 #include "error_prints.h"
 #include <errno.h>
 #include <fcntl.h>
