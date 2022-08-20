@@ -11,6 +11,7 @@
 
 #include "error_prints.h"
 #include "nullify_stdin.h"
+#include "tty.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
