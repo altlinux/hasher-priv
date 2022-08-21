@@ -11,6 +11,7 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "executors.h"
 #include "spawn_killuid.h"
 #include "process.h"
 
@@ -18,8 +19,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-
-#include "priv.h"
 
 void
 spawn_killuid(void)

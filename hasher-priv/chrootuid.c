@@ -12,6 +12,7 @@
 #include "chdir.h"
 #include "caller_data.h"
 #include "error_prints.h"
+#include "executors.h"
 #include "fds.h"
 #include "pty.h"
 #include "signals.h"

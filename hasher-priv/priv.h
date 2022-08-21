@@ -65,13 +65,6 @@ void	unshare_mount(void);
 void	unshare_network(void);
 void	unshare_uts(void);
 
-int     do_getconf(void);
-int     do_killuid(void);
-int     do_getugid1(void);
-int     do_chrootuid1(const char *const *argv);
-int     do_getugid2(void);
-int     do_chrootuid2(const char *const *argv);
-
 extern const char *chroot_path;
 
 extern str_list_t allowed_devices;

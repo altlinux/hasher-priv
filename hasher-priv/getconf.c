@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "executors.h"
 #include <stdio.h>
 
 #include "priv.h"

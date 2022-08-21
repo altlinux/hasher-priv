@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "executors.h"
 #include "ipc.h"
 #include <stdio.h>
 #include <stdlib.h>
