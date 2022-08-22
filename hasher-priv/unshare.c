@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "error_prints.h"
+#include "mount.h"
 #include "net.h"
 #include "unshare.h"
 #include <errno.h>
