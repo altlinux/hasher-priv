@@ -59,7 +59,6 @@ int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl
 
 void    setup_devices(const char **vec, size_t len);
 void	setup_mountpoints(void);
-void	setup_network(void);
 
 extern const char *chroot_path;
 

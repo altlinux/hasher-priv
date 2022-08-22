@@ -10,6 +10,7 @@
 
 #include "error_prints.h"
 #include "fds.h"
+#include "net.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -17,8 +18,6 @@
 
 #include <net/if.h>
 #include <linux/rtnetlink.h>
-
-#include "priv.h"
 
 void
 setup_network(void)
