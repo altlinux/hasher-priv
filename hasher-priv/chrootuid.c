@@ -17,6 +17,7 @@
 #include "pty.h"
 #include "signals.h"
 #include "spawn_killuid.h"
+#include "unshare.h"
 #include "x11.h"
 #include <errno.h>
 #include <stdio.h>
