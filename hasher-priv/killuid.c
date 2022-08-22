@@ -30,6 +30,10 @@ do_killuid(void)
 	if (change_uid2 < MIN_CHANGE_UID || change_uid2 == u)
 		error_msg_and_die("invalid uid: %u", change_uid2);
 
+	/*
+	 * Do not assume that fs.suid_dumpable == 0
+	 * and clear the dumpable flag explicitly.
+	 */
 	if (prctl(PR_SET_DUMPABLE, 0))
 		perror_msg_and_die("prctl PR_SET_DUMPABLE");
 

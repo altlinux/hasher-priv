@@ -59,7 +59,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
   + getugid2: print change_uid2:change_gid2 pair
   + killuid
     + check for valid uids specified
-    + drop dumpable flag (just in case - not required)
+    + clear the dumpable flag explicitly
     + setuid to specified uid pair
     + kill (-1, SIGKILL)
     + purge all SYSV IPC objects belonging to specified uid pair
