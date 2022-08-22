@@ -12,6 +12,7 @@
 #include "chdir.h"
 #include "error_prints.h"
 #include "file_config.h"
+#include "makedev.h"
 #include "mount.h"
 #include <errno.h>
 #include <stdio.h>

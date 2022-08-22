@@ -57,8 +57,6 @@ void    handle_child(const char *const *argv, const char *const *env,
 	ATTRIBUTE_NORETURN;
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
 
-void    setup_devices(const char **vec, size_t len);
-
 extern const char *chroot_path;
 
 extern str_list_t allowed_devices;

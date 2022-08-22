@@ -13,6 +13,7 @@
 #include "chid.h"
 #include "error_prints.h"
 #include "fds.h"
+#include "makedev.h"
 #include "unix.h"
 #include "xmalloc.h"
 #include <errno.h>
