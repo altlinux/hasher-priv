@@ -106,6 +106,7 @@ SRC_server =		\
 	pass.c		\
 	pidfile.c	\
 	process.c	\
+	procfd.c	\
 	pty.c		\
 	server_comm.c	\
 	server_config.c	\
