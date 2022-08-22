@@ -17,6 +17,7 @@
 #include "error_prints.h"
 #include "executors.h"
 #include "fds.h"
+#include "ns.h"
 #include "parent.h"
 #include "pty.h"
 #include "signals.h"
@@ -78,6 +79,9 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 	pid_t   pid;
 
 	spawn_killuid();
+
+	/* Check and setup namespaces.  */
+	setup_ns(caller_pid, caller_uid);
 
 	/*
 	 * Unshare mount namespace,

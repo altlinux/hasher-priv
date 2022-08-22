@@ -16,6 +16,7 @@ void init_caller_data(uid_t uid, gid_t gid);
 
 extern const char *caller_user;
 extern const char *caller_home;
+extern pid_t caller_pid;
 extern uid_t caller_uid;
 extern gid_t caller_gid;
 extern unsigned int caller_num;

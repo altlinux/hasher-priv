@@ -100,6 +100,7 @@ SRC_server =		\
 	makedev.c	\
 	mount.c		\
 	net.c		\
+	ns.c		\
 	nullify_stdin.c	\
 	opt_parse.c	\
 	parent.c	\

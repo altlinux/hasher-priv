@@ -49,7 +49,7 @@ check_peer_creds(int conn)
 	uid_t uid;
 	gid_t gid;
 
-	if (get_peercred(conn, NULL, &uid, &gid) < 0)
+	if (get_peercred(conn, &caller_pid, &uid, &gid) < 0)
 		return -1;
 
 	if (caller_uid != uid || caller_gid != gid) {

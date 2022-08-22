@@ -22,6 +22,7 @@
 
 const char *caller_user;
 const char *caller_home;
+pid_t caller_pid;
 uid_t caller_uid;
 gid_t caller_gid;
 unsigned int caller_num;
