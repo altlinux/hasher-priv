@@ -52,7 +52,7 @@ init_log_daemon(int is_foreground)
 	}
 }
 
-static int log_level = LOG_INFO;
+static int log_level = LOG_NOTICE;
 
 static int
 translate_log_level(const char *name)
