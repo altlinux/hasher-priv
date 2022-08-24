@@ -30,20 +30,20 @@ spawn_killuid(void)
 	if (pid == 0)
 		_exit(do_killuid());
 
-	for (;;) {
-		int status;
-		if (waitpid_retry(pid, &status, 0) < 0)
-			perror_msg_and_die("waitpid");
-		if (WIFEXITED(status)) {
-			if (WEXITSTATUS(status) == 0)
-				break;
-			error_msg_and_die("exit status %d",
-					  WEXITSTATUS(status));
-		}
-		if (WIFSIGNALED(status)) {
-			error_msg_and_die("terminated by signal %d",
-					  WTERMSIG(status));
-		}
-		error_msg_and_die("unrecognized status %#x", status);
+	int status;
+	if (waitpid_retry(pid, &status, 0) < 0)
+		perror_msg_and_die("waitpid");
+
+	if (WIFEXITED(status)) {
+		int rc = WEXITSTATUS(status);
+		if (rc == 0)
+			return;
+		error_msg_and_die("exit status %d", rc);
 	}
+
+	if (WIFSIGNALED(status)) {
+		error_msg_and_die("terminated by signal %d", WTERMSIG(status));
+	}
+
+	error_msg_and_die("unrecognized status %#x", status);
 }
