@@ -11,12 +11,15 @@
 
 #include "error_prints.h"
 #include "fds.h"
+#include "macros.h"
 #include "ns.h"
 #include "procfd.h"
 #include "xmalloc.h"
 #include <dirent.h>
 #include <fcntl.h>
+#include <sched.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -48,6 +51,22 @@ setup_ns(pid_t pid, uid_t uid)
 	if (self_ns_fd < 0)
 		perror_msg_and_die("dirfd: %s", self_ns_name);
 
+	struct {
+		const char *name;
+		int nstype;
+		int fd;
+	} enter_ns[] = {
+		/*
+		 * The list of namespaces that are allowed to differ
+		 * should contain at least those namespace types
+		 * that are supported by unshare_* functions.
+		 */
+		{ "mnt", CLONE_NEWNS, -1 },
+		{ "ipc", CLONE_NEWIPC, -1 },
+		{ "uts", CLONE_NEWUTS, -1 },
+		{ "net", CLONE_NEWNET, -1 },
+	};
+
 	struct dirent *dent;
 	while ((dent = readdir(self_ns_dir))) {
 		if (dent->d_type != DT_LNK)
@@ -66,9 +85,27 @@ setup_ns(pid_t pid, uid_t uid)
 		    self_st.st_ino == pid_st.st_ino)
 			continue;
 
-		perror_msg_and_die("%s namespace mismatch", dent->d_name);
+		unsigned int i;
+		for (i = 0; i < ARRAY_SIZE(enter_ns); ++i) {
+			if (strcmp(enter_ns[i].name, dent->d_name))
+				continue;
+			enter_ns[i].fd = openat(pid_ns_fd, dent->d_name,
+						O_RDONLY | O_CLOEXEC);
+			break;
+		}
+
+		if (i >= ARRAY_SIZE(enter_ns))
+			perror_msg_and_die("%s namespace mismatch", dent->d_name);
 	}
 
 	closedir(self_ns_dir);
 	xclose(&pid_ns_fd);
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(enter_ns); ++i) {
+		if (enter_ns[i].fd < 0)
+			continue;
+		if (setns(enter_ns[i].fd, enter_ns[i].nstype))
+			perror_msg_and_die("setns: %s", enter_ns[i].name);
+		xclose(&enter_ns[i].fd);
+	}
 }

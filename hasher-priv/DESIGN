@@ -168,6 +168,8 @@ Here is the control flow of the privileged job runner (euid=root):
           + killuid
       + check and setup namespaces
         + check that the server and the client belong to the same namespaces
+        + enter the client's mount, ipc, uts, and network namespaces
+          if they differ from the server's namespaces
       + setup mounts and devices
         + unshare mount namespace
         + safe chdir to chroot_path
