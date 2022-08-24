@@ -142,13 +142,30 @@ Here is the control flow of the privileged job runner (euid=root):
 + fork off a process to run the job
   + parent terminates the job command loop and exits
 + if the job is a chrootuid, join the cgroup of the client
-+ unblock all signals
 + fork off a child process
 + in the parent,
-  + wait for the completion of the child process
-  + report its exit status to the client
+  + create a file descriptor for accepting certain signals
+    + block these signals
+  + create a file descriptor for polling
+    + prepare for polling the client connection
+  + enter the polling loop
+    + if client has disconnected
+      + terminate the executor
+      + wait for the completion of the child process
+      + terminate the polling loop
+    + handle all received signals if any
+      + if certain signals has been received
+        + terminate the executor
+        + wait for the completion of the child process
+        + notify the client
+        + terminate the polling loop
+      + if SIGCHLD has been received
+        + wait for the completion of the child process
+        + report its exit status to the client
+        + terminate the polling loop
   + exit process
 + in the child,
+  + unblock all signals
   + replace stdin, stdout and stderr with those that were received
   + re-initialize the logger
   + initialize chroot_fd

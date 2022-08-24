@@ -242,11 +242,6 @@ receive_job_request(struct hadaemon *d, int conn, struct job *job)
 	xclose(&d->fd_conn);
 	xclose(&d->fd_pipe[0]);
 
-	/*
-	 * As we are not going to handle signals, unblock them.
-	 */
-	unblock_all_signals();
-
 	for (;;) {
 		cmd_header_t hdr = { 0 };
 
