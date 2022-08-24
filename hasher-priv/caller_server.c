@@ -112,38 +112,16 @@ fail:
 	return -1;
 }
 
-static void
-wait_jobs(void)
-{
-	for (;;) {
-		int status;
-		pid_t pid = waitpid_retry(-1, &status, WNOHANG);
-		if (pid <= 0) {
-			if (pid < 0 && errno != ECHILD)
-				perror_msg("waitpid");
-			break;
-		}
-
-		if (WIFEXITED(status)) {
-			int rc = WEXITSTATUS(status);
-			if (rc) {
-				notice_msg("process %d exited, status=%d",
-					   pid, rc);
-			} else {
-				info_msg("process %d exited", pid);
-			}
-		} else if (WIFSIGNALED(status)) {
-			notice_msg("process %d terminated by signal %d",
-				   pid, WTERMSIG(status));
-		}
-	}
-}
-
 void
 caller_server(struct hadaemon *sdae)
 {
 	unsigned long n_seconds = 0;
 	int finish_server = 0;
+
+	/*
+	 * As we are not going to handle SIGCHLD, unblock it.
+	 */
+	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 
 	while (!finish_server) {
 		errno = 0;
@@ -190,9 +168,6 @@ caller_server(struct hadaemon *sdae)
 				case SIGTERM:
 					finish_server = 1;
 					break;
-				case SIGCHLD:
-					wait_jobs();
-					break;
 				default:
 					error_msg("unexpected signal %d ignored",
 						  fdsi.ssi_signo);
@@ -214,7 +189,7 @@ caller_server(struct hadaemon *sdae)
 
 				if (set_recv_timeout(conn, 3) == 0 &&
 				    check_peer_creds(conn) == 0 &&
-				    receive_job_request(sdae, conn) == 0) {
+				    spawn_job_request_handler(sdae, conn) == 0) {
 					/* reset timer */
 					n_seconds = 0;
 				}

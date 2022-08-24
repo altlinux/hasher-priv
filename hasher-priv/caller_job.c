@@ -28,6 +28,7 @@
 #include "server_comm.h"
 #include "signals.h"
 #include "sockets.h"
+#include "title.h"
 #include "xmalloc.h"
 
 #include <sys/socket.h>
@@ -104,26 +105,29 @@ deallocate_job_resources(struct job *job)
 	}
 }
 
-static int
+ATTRIBUTE_NORETURN
+static void
 cancel_job(int conn, struct job *job, const char *reason)
 {
 	deallocate_job_resources(job);
-	send_response_to_client(conn, CMD_STATUS_FAILED, reason);
-	return -1;
+	send_response_to_client(conn, CMD_STATUS_FAILED, "%s", reason);
+	exit(EXIT_FAILURE);
 }
 
-static int
+ATTRIBUTE_NORETURN
+static void
 respond_server_error(int conn, struct job *job)
 {
 	/* Internal server error. */
-	return cancel_job(conn, job, "command failed");
+	cancel_job(conn, job, "command failed");
 }
 
-static int
+ATTRIBUTE_NORETURN
+static void
 respond_bad_request(int conn, struct job *job)
 {
 	/* The client has violated the protocol. */
-	return cancel_job(conn, job, "bad request");
+	cancel_job(conn, job, "bad request");
 }
 
 static int
@@ -227,74 +231,108 @@ validate_job(const struct job *job)
 	return 0;
 }
 
+ATTRIBUTE_NORETURN
+static void
+receive_job_request(struct hadaemon *d, int conn, struct job *job)
+{
+	setproctitle("job %s/%u:%u", caller_user, caller_uid, caller_num);
+
+	xclose(&d->fd_ep);
+	xclose(&d->fd_signal);
+	xclose(&d->fd_conn);
+	xclose(&d->fd_pipe[0]);
+
+	/*
+	 * As we are not going to handle signals, unblock them.
+	 */
+	unblock_all_signals();
+
+	for (;;) {
+		cmd_header_t hdr = { 0 };
+
+		if (xrecvmsg(conn, &hdr, sizeof(hdr)) < 0)
+			respond_server_error(conn, job);
+
+		if (job->mask & hdr.type) {
+			error_msg("repeated command: %d", hdr.type);
+			respond_bad_request(conn, job);
+		}
+
+		switch (hdr.type) {
+		case CMD_JOB_TYPE:
+			job->mask |= hdr.type;
+			job->type = hdr.len;
+			break;
+
+		case CMD_JOB_CHROOT_FD:
+			job->mask |= hdr.type;
+			if ((hdr.len != sizeof(job->chroot_fd)) ||
+			    fd_recv(conn, &job->chroot_fd, 1, 0, 0) < 0)
+				respond_bad_request(conn, job);
+			break;
+
+		case CMD_JOB_FDS:
+			job->mask |= hdr.type;
+			if ((hdr.len !=
+			     sizeof(job->std_fds[0]) * ARRAY_SIZE(job->std_fds)) ||
+			    fd_recv(conn, job->std_fds,
+				    ARRAY_SIZE(job->std_fds), 0, 0) < 0)
+				respond_bad_request(conn, job);
+			break;
+
+		case CMD_JOB_ARGUMENTS:
+			job->mask |= hdr.type;
+			if (recv_strings_from_client(conn, &job->argv, hdr.len) < 0 ||
+			    validate_arguments(job->type, job->argv) < 0)
+				respond_bad_request(conn, job);
+			break;
+
+		case CMD_JOB_ENVIRON:
+			job->mask |= hdr.type;
+			if (recv_strings_from_client(conn, &job->env, hdr.len) < 0)
+				respond_bad_request(conn, job);
+			break;
+
+		case CMD_JOB_RUN:
+			job->mask |= hdr.type;
+			if (validate_job(job) < 0)
+				respond_bad_request(conn, job);
+			if (spawn_job_runner(d, conn, job) < 0)
+				respond_server_error(conn, job);
+			/* spawn_job_runner() sends a response by itself and exits. */
+			exit(EXIT_SUCCESS);
+
+		default:
+			error_msg("unknown command: %d", hdr.type);
+			respond_bad_request(conn, job);
+		}
+
+		send_response_to_client(conn, CMD_STATUS_DONE, NULL);
+	}
+}
+
 int
-receive_job_request(struct hadaemon *d, int conn)
+spawn_job_request_handler(struct hadaemon *d, int conn)
 {
 	struct job job = {
 		.chroot_fd = -1,
 		.std_fds = { -1, -1, -1 }
 	};
 
-	for (;;) {
-		cmd_header_t hdr = { 0 };
-
-		if (xrecvmsg(conn, &hdr, sizeof(hdr)) < 0)
-			return respond_server_error(conn, &job);
-
-		if (job.mask & hdr.type) {
-			error_msg("repeated command: %d", hdr.type);
-			return respond_bad_request(conn, &job);
-		}
-
-		switch (hdr.type) {
-		case CMD_JOB_TYPE:
-			job.mask |= hdr.type;
-			job.type = hdr.len;
-			break;
-
-		case CMD_JOB_CHROOT_FD:
-			job.mask |= hdr.type;
-			if ((hdr.len != sizeof(job.chroot_fd)) ||
-			    fd_recv(conn, &job.chroot_fd, 1, 0, 0) < 0)
-				return respond_bad_request(conn, &job);
-			break;
-
-		case CMD_JOB_FDS:
-			job.mask |= hdr.type;
-			if ((hdr.len !=
-			     sizeof(job.std_fds[0]) * ARRAY_SIZE(job.std_fds)) ||
-			    fd_recv(conn, job.std_fds,
-				    ARRAY_SIZE(job.std_fds), 0, 0) < 0)
-				return respond_bad_request(conn, &job);
-			break;
-
-		case CMD_JOB_ARGUMENTS:
-			job.mask |= hdr.type;
-			if (recv_strings_from_client(conn, &job.argv, hdr.len) < 0 ||
-			    validate_arguments(job.type, job.argv) < 0)
-				return respond_bad_request(conn, &job);
-			break;
-
-		case CMD_JOB_ENVIRON:
-			job.mask |= hdr.type;
-			if (recv_strings_from_client(conn, &job.env, hdr.len) < 0)
-				return respond_bad_request(conn, &job);
-			break;
-
-		case CMD_JOB_RUN:
-			job.mask |= hdr.type;
-			if (validate_job(&job) < 0)
-				return respond_bad_request(conn, &job);
-			spawn_job_runner(d, conn, &job);
-			deallocate_job_resources(&job);
-			/* spawn_job_runner() sends a response by itself. */
-			return 0;
-
-		default:
-			error_msg("unknown command: %d", hdr.type);
-			return respond_bad_request(conn, &job);
-		}
-
-		send_response_to_client(conn, CMD_STATUS_DONE, NULL);
+	/*
+	 * Move the job request handling into a subprocess
+	 * to simplify resource handling.
+	 */
+	pid_t pid = fork();
+	if (pid < 0) {
+		perror_msg("fork");
+		send_response_to_client(conn, CMD_STATUS_FAILED,
+					"command failed");
+		return EXIT_FAILURE;
 	}
+	if (pid > 0) {
+		return wait_job(&job, pid);
+	}
+
+	receive_job_request(d, conn, &job);
 }

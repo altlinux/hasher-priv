@@ -24,7 +24,7 @@ struct job {
 	char **env;
 };
 
-int receive_job_request(struct hadaemon *, int conn);
+int spawn_job_request_handler(struct hadaemon *, int conn);
 int wait_job(const struct job *, pid_t);
 void deallocate_job_resources(struct job *);
 

@@ -113,15 +113,10 @@ spawn_job_executor(struct job *job)
 
 ATTRIBUTE_NORETURN
 static void
-job_runner(struct hadaemon *d, int conn, struct job *job)
+job_runner(struct hadaemon *d ATTRIBUTE_UNUSED, int conn, struct job *job)
 {
 	setproctitle("runner %s/%u:%u: %s",
 		     caller_user, caller_uid, caller_num, job2str(job->type));
-
-	xclose(&d->fd_pipe[0]);
-	xclose(&d->fd_ep);
-	xclose(&d->fd_signal);
-	xclose(&d->fd_conn);
 
 	/*
 	 * If the job is a chrootuid, the service daemon will spawn
@@ -136,26 +131,18 @@ job_runner(struct hadaemon *d, int conn, struct job *job)
 	if (is_job_spawning(job))
 		join_caller_cgroup(caller_pid);
 
-	/*
-	 * As we are not going to handle signals, unblock them.
-	 */
-	unblock_all_signals();
-
-	int rc;
-	int exit_status;
 	int pid = spawn_job_executor(job);
-	if (pid > 0) {
-		deallocate_job_resources(job);
-		rc = wait_job(job, pid);
-		exit_status = EXIT_SUCCESS;
-	} else {
-		rc = exit_status = EXIT_FAILURE;
-	}
+	if (pid < 0)
+		exit(EXIT_FAILURE);
+
+	deallocate_job_resources(job);
+
+	int rc = wait_job(job, pid);
 
 	/* Notify the client about the results. */
 	send_response_to_client(conn, rc, NULL);
 
-	exit(exit_status);
+	exit(EXIT_SUCCESS);
 }
 
 pid_t
