@@ -32,3 +32,19 @@ epoll_add_in(int fd_ep, int fd)
 
 	return 0;
 }
+
+int
+epoll_add_hup(int fd_ep, int fd)
+{
+	struct epoll_event ev = {
+		.events = 0, /* HUP and ERR are implicit. */
+		.data.fd = fd,
+	};
+
+	if (epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd, &ev) < 0) {
+		perror_msg("epoll_ctl");
+		return -1;
+	}
+
+	return 0;
+}

@@ -13,5 +13,6 @@
 #include <sys/epoll.h>
 
 int epoll_add_in(int fd_ep, int fd);
+int epoll_add_hup(int fd_ep, int fd);
 
 #endif /* HASHER_EPOLL_H_ */
