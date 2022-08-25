@@ -110,6 +110,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + set close-on-exec flag on all non-standard descriptors
     + fork
       + in parent:
+        + clear the dumpable flag explicitly
         + setgid/setuid to caller user
         + install CHLD signal handler
         + unblock master pty and pipe descriptors
@@ -123,6 +124,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
       + in child:
         + if X11 forwarding to a tcp address was requested,
           unless share_network is enabled, unshare network
+        + clear the dumpable flag explicitly
         + setgid/setuid to specified user
         + setsid
         + change controlling terminal to pty

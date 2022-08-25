@@ -27,6 +27,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <grp.h>
+#include <sys/prctl.h>
 #include <sys/socket.h>
 
 #include "priv.h"
@@ -153,6 +154,13 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 		    || (x11_display && xclose(&ctl[1])))
 			perror_msg_and_die("close");
 
+		/*
+		 * Do not assume that fs.suid_dumpable == 0
+		 * and clear the dumpable flag explicitly.
+		 */
+		if (prctl(PR_SET_DUMPABLE, 0))
+			perror_msg_and_die("prctl PR_SET_DUMPABLE");
+
 		if (setgid(caller_gid) < 0)
 			perror_msg_and_die("setgid");
 
@@ -177,6 +185,13 @@ chrootuid(uid_t uid, gid_t gid, const char *const *argv,
 
 		if (share_caller_network)
 			unshare_network();
+
+		/*
+		 * Do not assume that fs.suid_dumpable == 0
+		 * and clear the dumpable flag explicitly.
+		 */
+		if (prctl(PR_SET_DUMPABLE, 0))
+			perror_msg_and_die("prctl PR_SET_DUMPABLE");
 
 		if (setgid(gid) < 0)
 			perror_msg_and_die("setgid");
