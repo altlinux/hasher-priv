@@ -83,7 +83,6 @@ print_version(void)
 }
 
 const char *chroot_path;
-unsigned caller_num;
 
 static unsigned
 get_caller_num(const char *str)

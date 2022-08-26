@@ -26,6 +26,7 @@ const char *caller_user;
 const char *caller_home;
 uid_t caller_uid;
 gid_t caller_gid;
+unsigned int caller_num;
 
 /*
  * Initialize caller_user, caller_uid, caller_gid and caller_home.
