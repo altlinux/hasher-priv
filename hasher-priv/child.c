@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 
 #include "priv.h"

@@ -13,7 +13,6 @@
 #include "cc_compat.h"
 #include <sys/types.h>
 #include <sys/resource.h>
-#include <sys/stat.h>
 
 #define	MIN_CHANGE_UID	34
 #define	MIN_CHANGE_GID	34

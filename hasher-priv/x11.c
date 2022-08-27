@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 
 #include "priv.h"
