@@ -144,6 +144,9 @@ Here is the control flow of the privileged job runner (euid=root):
 + if the job is a chrootuid, join the cgroup of the client
 + fork off a child process
 + in the parent,
+  + clear the dumpable flag explicitly
+  + clear the supplementary group access list
+  + setgid/setuid to the caller user
   + create a file descriptor for accepting certain signals
     + block these signals
   + create a file descriptor for polling

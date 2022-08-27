@@ -10,7 +10,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-/* Code in this file may be executed with root privileges. */
+/* Code in this file may be executed with root or caller privileges. */
 
 #include "caller_config.h"
 #include "caller_data.h"
@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/prctl.h>
 #include <sys/signalfd.h>
 
 static int
@@ -168,6 +171,24 @@ job_runner(struct hadaemon *d ATTRIBUTE_UNUSED, int conn, struct job *job)
 		exit(EXIT_FAILURE);
 
 	deallocate_job_resources(job);
+
+	/*
+	 * Do not assume that fs.suid_dumpable == 0
+	 * and clear the dumpable flag explicitly.
+	 */
+	if (prctl(PR_SET_DUMPABLE, 0))
+		perror_msg_and_die("prctl PR_SET_DUMPABLE");
+
+	if (setgroups(0UL, 0) < 0)
+		perror_msg_and_die("setgroups");
+
+	if (setgid(caller_gid) < 0)
+		perror_msg_and_die("setgid");
+
+	if (setuid(caller_uid) < 0)
+		perror_msg_and_die("setuid");
+
+	/* Process is no longer privileged at this point. */
 
 	if ((d->fd_signal = daemon_create_signal_fd()) < 0)
 		perror_msg_and_die("signalfd");
