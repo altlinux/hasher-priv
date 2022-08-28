@@ -14,6 +14,7 @@
 #include "fd_set.h"
 #include "io_log.h"
 #include "io_loop.h"
+#include "parent.h"
 #include "unblock_fd.h"
 #include "unix.h"
 #include "xmalloc.h"
@@ -21,8 +22,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "priv.h"
 
 static int *fd_list;
 static size_t fd_count;

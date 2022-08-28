@@ -11,16 +11,19 @@
 
 #include "caller_config.h"
 #include "error_prints.h"
-#include "fds.h"
 #include "fd_set.h"
+#include "fds.h"
 #include "io_log.h"
 #include "io_loop.h"
 #include "io_x11.h"
+#include "parent.h"
 #include "pass.h"
+#include "process.h"
 #include "signals.h"
 #include "tty.h"
 #include "unblock_fd.h"
 #include "x11.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,10 +34,6 @@
 #include <signal.h>
 #include <sys/select.h>
 #include <sys/wait.h>
-
-#include "priv.h"
-#include "process.h"
-#include "xmalloc.h"
 
 static volatile pid_t child_pid;
 

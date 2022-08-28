@@ -10,13 +10,17 @@
 /* Code in this file may be executed with child privileges. */
 
 #include "caller_config.h"
+#include "child.h"
 #include "error_prints.h"
 #include "fds.h"
 #include "io_loop.h"
+#include "macros.h"
 #include "nullify_stdin.h"
 #include "pass.h"
+#include "process.h"
 #include "signals.h"
 #include "x11.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,11 +31,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-
-#include "priv.h"
-#include "macros.h"
-#include "process.h"
-#include "xmalloc.h"
 
 static void
 connect_fds(int pty_fd, int pipe_out, int pipe_err)

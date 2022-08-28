@@ -13,14 +13,17 @@
 #include "caller_data.h"
 #include "change_rlimit.h"
 #include "chdir.h"
+#include "child.h"
 #include "error_prints.h"
 #include "executors.h"
 #include "fds.h"
+#include "parent.h"
 #include "pty.h"
 #include "signals.h"
 #include "spawn_killuid.h"
 #include "unshare.h"
 #include "x11.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +36,6 @@
 #include <sys/socket.h>
 
 #include "priv.h"
-#include "xmalloc.h"
 
 static void
 set_rlimits(void)
