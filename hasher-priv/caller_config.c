@@ -44,7 +44,6 @@ int change_nice = 8;
 int     makedev_console;
 int     use_pty;
 size_t  x11_data_len;
-int share_caller_network = 0;
 int share_ipc = -1;
 int share_network = -1;
 int share_uts = -1;

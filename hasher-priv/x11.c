@@ -26,9 +26,9 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 
-#include "priv.h"
-
 #define X11_UNIX_DIR "/tmp/.X11-unix"
+
+int share_caller_network = 0;
 
 typedef int (*x11_connect_method_t) (const char *, unsigned);
 static x11_connect_method_t x11_connect_method;

@@ -23,4 +23,6 @@ int     x11_check_listen(int fd);
 extern const char *x11_display, *x11_key;
 extern size_t x11_data_len;
 
+extern int share_caller_network;
+
 #endif /* !HASHER_X11_H */

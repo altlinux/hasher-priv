@@ -58,7 +58,6 @@ extern const char *term;
 
 extern int makedev_console;
 extern int use_pty;
-extern int share_caller_network;
 extern int share_ipc;
 extern int share_network;
 extern int share_uts;
