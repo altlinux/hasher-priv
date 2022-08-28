@@ -11,15 +11,13 @@
 
 #include "caller_data.h"
 #include "caller_config.h"
+#include "cmdline.h"
 #include "error_prints.h"
 #include "executors.h"
 #include "fds.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "cmdline.h"
-#include "priv.h"
 
 int
 main(int ac, const char *av[])

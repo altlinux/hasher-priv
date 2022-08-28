@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with caller privileges. */
 
+#include "caller_config.h"
 #include "error_prints.h"
 #include "fds.h"
 #include "fd_set.h"

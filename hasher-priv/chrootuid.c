@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "caller_config.h"
 #include "caller_data.h"
 #include "change_rlimit.h"
 #include "chdir.h"

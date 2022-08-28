@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with caller privileges. */
 
+#include "caller_config.h"
 #include "error_prints.h"
 #include "nullify_stdin.h"
 #include "tty.h"
@@ -16,8 +17,6 @@
 #include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
-
-#include "priv.h"
 
 static int tty_is_saved;
 static struct termios tty_orig;

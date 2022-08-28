@@ -7,9 +7,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "caller_config.h"
 #include "caller_data.h"
 #include "chdir.h"
 #include "error_prints.h"
+#include "xmalloc.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -17,9 +19,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
-
-#include "priv.h"
-#include "xmalloc.h"
 
 /* This function may be executed with root privileges. */
 static const char *

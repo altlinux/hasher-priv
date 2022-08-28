@@ -9,10 +9,9 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "caller_config.h"
 #include "executors.h"
 #include <stdio.h>
-
-#include "priv.h"
 
 int
 do_getugid1(void)

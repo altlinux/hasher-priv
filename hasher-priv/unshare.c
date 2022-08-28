@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "caller_config.h"
 #include "error_prints.h"
 #include "mount.h"
 #include "net.h"
@@ -31,8 +32,6 @@
 #ifndef CLONE_NEWNET
 # define CLONE_NEWNET	0x40000000
 #endif
-
-#include "priv.h"
 
 static int
 do_unshare(int clone_flags, const char *clone_name,

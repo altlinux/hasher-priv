@@ -7,18 +7,17 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "caller_config.h"
 #include "caller_data.h"
 #include "chdir.h"
 #include "chid.h"
 #include "error_prints.h"
+#include "xmalloc.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <grp.h>
-
-#include "priv.h"
-#include "xmalloc.h"
 
 /*
  * Check whether the file path PREFIX is prefix of the file path SAMPLE.

@@ -9,6 +9,7 @@
 
 /* Code in this file may be executed with root privileges. */
 
+#include "cmdline.h"
 #include "error_prints.h"
 #include <errno.h>
 #include <stdio.h>
@@ -16,9 +17,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <limits.h>
-
-#include "cmdline.h"
-#include "priv.h"
 
 ATTRIBUTE_NORETURN
 ATTRIBUTE_FORMAT((printf, 1, 2))
