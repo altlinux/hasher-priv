@@ -12,7 +12,6 @@
 
 #include "cc_compat.h"
 #include <sys/types.h>
-#include <sys/resource.h>
 
 #define	MIN_CHANGE_UID	34
 #define	MIN_CHANGE_GID	34
@@ -27,13 +26,6 @@ typedef enum
 	JOB_GETUGID2,
 	JOB_CHROOTUID2,
 } job_enum_t;
-
-typedef struct
-{
-	const char *name;
-	int     resource;
-	rlim_t *hard, *soft;
-} change_rlimit_t;
 
 typedef struct
 {
@@ -83,7 +75,6 @@ extern uid_t change_uid1, change_uid2;
 extern gid_t change_gid1, change_gid2;
 extern mode_t change_umask;
 extern int change_nice;
-extern change_rlimit_t change_rlimit[];
 extern work_limit_t wlimit;
 
 #endif /* PKG_BUILD_PRIV_H */
