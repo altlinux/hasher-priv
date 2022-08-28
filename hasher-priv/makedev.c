@@ -15,6 +15,7 @@
 #include "error_prints.h"
 #include "fds.h"
 #include "makedev.h"
+#include "mount.h"
 #include "unix.h"
 #include "xmalloc.h"
 #include <errno.h>

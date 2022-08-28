@@ -12,4 +12,6 @@
 
 void setup_mountpoints(void);
 
+extern int dev_pts_mounted;
+
 #endif /* !HASHER_MOUNT_H */

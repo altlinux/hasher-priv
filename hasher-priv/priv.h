@@ -35,8 +35,6 @@ int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl
 
 extern const char *chroot_path;
 
-extern int dev_pts_mounted;
-
 extern unsigned int caller_num;
 
 #endif /* PKG_BUILD_PRIV_H */

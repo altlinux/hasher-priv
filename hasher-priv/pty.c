@@ -14,15 +14,14 @@
 #include "chid.h"
 #include "error_prints.h"
 #include "fds.h"
+#include "mount.h"
 #include "pty.h"
+#include "xmalloc.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-
-#include "priv.h"
-#include "xmalloc.h"
 
 int
 open_pty(int *slave_fd, const enum open_pty_chrootedness chrooted,
