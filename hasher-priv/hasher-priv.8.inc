@@ -141,6 +141,7 @@ configuration.
 
 [SEE ALSO]
 .BR unshare (2),
-.BR hasher\-priv.conf (5),
 .BR hasher (7),
+.BR hasher\-privd (8),
+.BR hasher\-priv.conf (5),
 .BR hasher\-useradd (8).

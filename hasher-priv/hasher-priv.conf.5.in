@@ -194,4 +194,5 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH "SEE ALSO"
 .BR hsh (1),
 .BR hasher (7),
-.BR hasher\-priv (8).
+.BR hasher\-priv (8),
+.BR hasher\-privd (8).
