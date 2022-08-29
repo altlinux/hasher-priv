@@ -31,10 +31,20 @@ INSTALL = install
 HELP2MAN8 = help2man -N -s8
 LFS_CFLAGS = $(shell getconf LFS_CFLAGS)
 CHDIRUID_FLAGS = -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS
-WARNINGS = -Wall -W -Wshadow -Wpointer-arith -Wwrite-strings \
-	-Wconversion -Waggregate-return -Wstrict-prototypes -Werror \
-	-Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn \
-	-Wmissing-format-attribute -Wredundant-decls -Wdisabled-optimization
+WARNINGS = -Wall -W -Werror \
+	   -Waggregate-return \
+	   -Wconversion \
+	   -Wdisabled-optimization \
+	   -Wmissing-declarations \
+	   -Wmissing-format-attribute \
+	   -Wmissing-noreturn \
+	   -Wmissing-prototypes \
+	   -Wpointer-arith \
+	   -Wredundant-decls \
+	   -Wshadow \
+	   -Wstrict-prototypes \
+	   -Wwrite-strings \
+	   #
 CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 	$(call have-cc-function,close_range,HAVE_CLOSE_RANGE) \
 	$(LFS_CFLAGS) -DPROJECT_VERSION=\"$(VERSION)\"
