@@ -44,6 +44,13 @@ groupadd -r -f hashman
 %preun
 %preun_service hasher-privd
 
+%triggerpostun -- %name < 2.0
+/sbin/chkconfig --add hasher-privd
+if [ -n "$(getent group hashman |cut -d: -f4)" ]; then
+	/sbin/chkconfig hasher-privd on
+	/sbin/service hasher-privd start
+fi
+
 %files
 %_sbindir/hasher-useradd
 %_mandir/man?/*
