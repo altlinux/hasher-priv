@@ -140,7 +140,9 @@ Here is the control flow of the privileged job handler (euid=root):
 Here is the control flow of the privileged job runner (euid=root):
 ==================================================================
 + fork off a process to run the job
-  + parent terminates the job command loop and exits
+  + in the parent,
+    + if the job is not a chrootuid, wait for the child process termination
+    + terminate the job command loop and exit
 + if the job is a chrootuid, join the cgroup of the client
 + fork off a child process
 + in the parent,

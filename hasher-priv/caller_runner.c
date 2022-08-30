@@ -282,7 +282,15 @@ spawn_job_runner(struct hadaemon *d, int conn, struct job *job)
 		return -1;
 	}
 	if (pid > 0) {
-		return pid;
+		if (is_job_spawning(job))
+			return pid;
+		/*
+		 * Non-chrootuid jobs are short-lived processes that perform very
+		 * specific auxiliary tasks, they are parts of the service daemon
+		 * and could be trusted to not linger too long.
+		 */
+		(void) wait_job(job, pid);
+		return 0;
 	}
 	job_runner(d, conn, job);
 }
