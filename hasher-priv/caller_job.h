@@ -20,6 +20,7 @@ struct job {
 	unsigned int num;
 	int chroot_fd;
 	int std_fds[3];
+	int pipe_fds[2];
 	char **argv;
 	char **env;
 };

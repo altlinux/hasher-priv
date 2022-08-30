@@ -94,6 +94,10 @@ deallocate_job_resources(struct job *job)
 		xclose(&job->std_fds[i]);
 	}
 
+	for (unsigned int i = 0; i < ARRAY_SIZE(job->pipe_fds); ++i) {
+		xclose(&job->pipe_fds[i]);
+	}
+
 	if (job->env) {
 		free(job->env[0]);
 		free(job->env);
@@ -311,7 +315,8 @@ spawn_job_request_handler(struct hadaemon *d, int conn)
 {
 	struct job job = {
 		.chroot_fd = -1,
-		.std_fds = { -1, -1, -1 }
+		.std_fds = { -1, -1, -1 },
+		.pipe_fds = { -1, -1 }
 	};
 
 	/*

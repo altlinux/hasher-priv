@@ -276,14 +276,30 @@ job_runner(struct hadaemon *d ATTRIBUTE_UNUSED, int conn, struct job *job)
 pid_t
 spawn_job_runner(struct hadaemon *d, int conn, struct job *job)
 {
+	if (is_job_spawning(job) &&
+	    pipe(job->pipe_fds)) {
+		perror_msg("pipe");
+		return -1;
+	}
+
 	pid_t pid = fork();
 	if (pid < 0) {
 		perror_msg("fork");
 		return -1;
 	}
+
 	if (pid > 0) {
-		if (is_job_spawning(job))
+		if (is_job_spawning(job)) {
+			(void) xclose(&job->pipe_fds[1]);
+			/*
+			 * Wait until the child process closes
+			 * the writing end of the pipe which happens
+			 * when the executor sanitizes its descriptors.
+			 */
+			char buf[1];
+			(void) read_retry(job->pipe_fds[0], buf, sizeof(buf));
 			return pid;
+		}
 		/*
 		 * Non-chrootuid jobs are short-lived processes that perform very
 		 * specific auxiliary tasks, they are parts of the service daemon
@@ -292,5 +308,7 @@ spawn_job_runner(struct hadaemon *d, int conn, struct job *job)
 		(void) wait_job(job, pid);
 		return 0;
 	}
+
+	(void) xclose(&job->pipe_fds[0]);
 	job_runner(d, conn, job);
 }
