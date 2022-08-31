@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.6.1
+Version: 2.0
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -72,6 +72,10 @@ fi
 %doc DESIGN
 
 %changelog
+* Wed Aug 31 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0-alt1
+- Rewritten using a client-server architecture
+  (by Alexey Gladkov, Arseny Maslennikov, Gleb Fotengauer-Malinovskiy, and me).
+
 * Thu Jul 29 2021 Dmitry V. Levin <ldv@altlinux.org> 1.6.1-alt1
 - sanitize_fds: changed to use close_range(2) if available (by Arseny Maslennikov).
 - hasher-useradd: added new option: -r/--system (by Arseny Maslennikov).
