@@ -36,6 +36,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <sys/prctl.h>
+#include <sys/personality.h>
 #include <sys/socket.h>
 
 static void
@@ -69,7 +70,8 @@ set_rlimits(void)
 }
 
 static int
-chrootuid(uid_t uid, gid_t gid, const char *user_name, const char *const *argv,
+chrootuid(uid_t uid, gid_t gid, const unsigned int persona,
+	  const char *user_name, const char *const *argv,
 	  const char *ehome, const char *euser, const char *epath)
 {
 	int     master = -1, slave = -1;
@@ -240,6 +242,21 @@ chrootuid(uid_t uid, gid_t gid, const char *user_name, const char *const *argv,
 
 		/* Process is no longer privileged at this point. */
 
+		if (persona != -1U && personality(persona) < 0) {
+			/*
+			 * Depending on the architecture and the kernel
+			 * version, personality syscall is either capable
+			 * or incapable of returning an error.
+			 * If the return value is not an error, then
+			 * it's the previous personality value, which
+			 * can be an arbitrary value indistinguishable
+			 * from an error value.  To make things clear,
+			 * a second syscall invocation is needed.
+			 */
+			if (personality(persona) < 0)
+				perror_msg_and_die("personality");
+		}
+
 		char   *term_env = xasprintf("TERM=%s", term ? : "dumb");
 		const char *x11_env = x11_display ? "DISPLAY=:10.0" : 0;
 		const char *const env[] = {
@@ -252,17 +269,17 @@ chrootuid(uid_t uid, gid_t gid, const char *user_name, const char *const *argv,
 }
 
 int
-do_chrootuid1(const char *const *argv)
+do_chrootuid1(const char *const *argv, unsigned int persona)
 {
-	return chrootuid(change_uid1, change_gid1, change_user1, argv,
+	return chrootuid(change_uid1, change_gid1, persona, change_user1, argv,
 			 "HOME=/root", "USER=root",
 			 "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
 
 int
-do_chrootuid2(const char *const *argv)
+do_chrootuid2(const char *const *argv, unsigned int persona)
 {
-	return chrootuid(change_uid2, change_gid2, change_user2, argv,
+	return chrootuid(change_uid2, change_gid2, persona, change_user2, argv,
 			 "HOME=/usr/src", "USER=builder",
 			 "PATH=/bin:/usr/bin:/usr/X11R6/bin");
 }

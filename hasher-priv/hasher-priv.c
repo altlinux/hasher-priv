@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/personality.h>
 #include <linux/un.h>
 
 /* Handle response from the session server. */
@@ -111,6 +112,26 @@ send_type(int conn, job_enum_t type)
 }
 
 static void
+send_personality(int conn)
+{
+	const int pers = personality(0xffffffff);
+	if (pers < 0) {
+		perror_msg("personality");
+		return;
+	}
+
+	cmd_header_t hdr = {
+		.type = CMD_JOB_PERSONALITY,
+		.len = (unsigned int) pers
+	};
+
+	if (xsendmsg(conn, &hdr, sizeof(hdr)) < 0)
+		error_msg_and_die("failed to send header");
+
+	(void) recv_response(conn, "personality");
+}
+
+static void
 send_fds(int conn, cmd_enum_t cmd, const char *name,
 	 int *fds, unsigned int n_fds)
 {
@@ -190,6 +211,7 @@ main(int ac, const char *av[], const char *ev[])
 		send_strings(conn, CMD_JOB_ENVIRON, "environment", ev);
 		send_fds(conn, CMD_JOB_CHROOT_FD, "chroot descriptor",
 			 &chroot_fd, 1);
+		send_personality(conn);
 	}
 
 	return send_run(conn);

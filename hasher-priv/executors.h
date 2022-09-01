@@ -14,7 +14,7 @@ int     do_getconf(void);
 int     do_killuid(void);
 int     do_getugid1(void);
 int     do_getugid2(void);
-int     do_chrootuid1(const char *const *argv);
-int     do_chrootuid2(const char *const *argv);
+int     do_chrootuid1(const char *const *argv, unsigned int persona);
+int     do_chrootuid2(const char *const *argv, unsigned int persona);
 
 #endif /* !HASHER_EXECUTORS_H */

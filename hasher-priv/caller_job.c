@@ -263,6 +263,11 @@ receive_job_request(struct hadaemon *d, int conn, struct job *job)
 			job->type = hdr.len;
 			break;
 
+		case CMD_JOB_PERSONALITY:
+			job->mask |= hdr.type;
+			job->persona = hdr.len;
+			break;
+
 		case CMD_JOB_CHROOT_FD:
 			job->mask |= hdr.type;
 			if ((hdr.len != sizeof(job->chroot_fd)) ||
@@ -314,6 +319,7 @@ int
 spawn_job_request_handler(struct hadaemon *d, int conn)
 {
 	struct job job = {
+		.persona = -1U,
 		.chroot_fd = -1,
 		.std_fds = { -1, -1, -1 },
 		.pipe_fds = { -1, -1 }

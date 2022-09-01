@@ -18,6 +18,7 @@ struct job {
 	job_enum_t type;
 	unsigned int mask;
 	unsigned int num;
+	unsigned int persona;
 	int chroot_fd;
 	int std_fds[3];
 	int pipe_fds[2];

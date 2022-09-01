@@ -95,13 +95,15 @@ job_executor(struct job *job)
 			rc = do_getugid1();
 			break;
 		case JOB_CHROOTUID1:
-			rc = do_chrootuid1((const char *const *) job->argv);
+			rc = do_chrootuid1((const char *const *) job->argv,
+					   job->persona);
 			break;
 		case JOB_GETUGID2:
 			rc = do_getugid2();
 			break;
 		case JOB_CHROOTUID2:
-			rc = do_chrootuid2((const char *const *) job->argv);
+			rc = do_chrootuid2((const char *const *) job->argv,
+					   job->persona);
 			break;
 		default:
 			error_msg_and_die("unknown job %d", job->type);
