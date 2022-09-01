@@ -33,6 +33,7 @@
 #include "title.h"
 
 #include <sys/epoll.h>
+#include <sys/prctl.h>
 #include <sys/signalfd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -292,6 +293,11 @@ main(int argc, char **argv)
 	};
 
 	sanitize_fds();
+
+#ifdef PR_SET_NO_NEW_PRIVS
+	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+		perror_msg("PR_SET_NO_NEW_PRIVS");
+#endif
 
 	const char *loglevel = NULL;
 	const char *pidfile = NULL;

@@ -33,6 +33,7 @@ Here is the control flow of the privileged hasher-privd server (euid=root):
   + set safe umask
   + ensure 0,1,2 are valid file descriptors
   + close all the rest
++ set PR_SET_NO_NEW_PRIVS flag
 + parse command line arguments
   + handle -h and --help options
 + load the server configuration
