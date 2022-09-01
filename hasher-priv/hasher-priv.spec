@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 2.0.1
+Version: 2.0.2
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -72,6 +72,9 @@ fi
 %doc DESIGN
 
 %changelog
+* Thu Sep 01 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0.2-alt1
+- Harden the service daemon further by setting PR_SET_NO_NEW_PRIVS flag.
+
 * Thu Sep 01 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0.1-alt1
 - Forward the process personality from the client to the server.
 
