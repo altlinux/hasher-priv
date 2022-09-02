@@ -264,26 +264,24 @@ receive_job_request(struct hadaemon *d, int conn, struct job *job)
 			respond_bad_request(conn, job);
 		}
 
+		job->mask |= hdr.type;
+
 		switch (hdr.type) {
 		case CMD_JOB_TYPE:
-			job->mask |= hdr.type;
 			job->type = hdr.len;
 			break;
 
 		case CMD_JOB_PERSONALITY:
-			job->mask |= hdr.type;
 			job->persona = hdr.len;
 			break;
 
 		case CMD_JOB_CHROOT_FD:
-			job->mask |= hdr.type;
 			if ((hdr.len != sizeof(job->chroot_fd)) ||
 			    fd_recv(conn, &job->chroot_fd, 1, 0, 0) < 0)
 				respond_bad_request(conn, job);
 			break;
 
 		case CMD_JOB_FDS:
-			job->mask |= hdr.type;
 			if ((hdr.len !=
 			     sizeof(job->std_fds[0]) * ARRAY_SIZE(job->std_fds)) ||
 			    fd_recv(conn, job->std_fds,
@@ -292,20 +290,17 @@ receive_job_request(struct hadaemon *d, int conn, struct job *job)
 			break;
 
 		case CMD_JOB_ARGUMENTS:
-			job->mask |= hdr.type;
 			if (recv_strings_from_client(conn, &job->argv, hdr.len) < 0 ||
 			    validate_arguments(job->type, job->argv) < 0)
 				respond_bad_request(conn, job);
 			break;
 
 		case CMD_JOB_ENVIRON:
-			job->mask |= hdr.type;
 			if (recv_strings_from_client(conn, &job->env, hdr.len) < 0)
 				respond_bad_request(conn, job);
 			break;
 
 		case CMD_JOB_RUN:
-			job->mask |= hdr.type;
 			if (validate_job(job) < 0)
 				respond_bad_request(conn, job);
 			if (spawn_job_runner(d, conn, job) < 0)
