@@ -301,7 +301,7 @@ receive_job_request(struct hadaemon *d, int conn, struct job *job)
 			break;
 
 		case CMD_JOB_RUN:
-			if (validate_job(job) < 0)
+			if (hdr.len || validate_job(job) < 0)
 				respond_bad_request(conn, job);
 			if (spawn_job_runner(d, conn, job) < 0)
 				respond_server_error(conn, job);
