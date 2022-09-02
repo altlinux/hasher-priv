@@ -31,15 +31,15 @@
 #include "title.h"
 #include "xmalloc.h"
 
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/param.h>
-#include <sys/wait.h>
-
-#include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/wait.h>
 
 static int
 validate_arguments(job_enum_t job, char **argv)
@@ -137,10 +137,18 @@ respond_bad_request(int conn, struct job *job)
 static int
 recv_strings_from_client(int conn, char ***argv, unsigned int len)
 {
+	enum {
+		MAX_ARGS_SIZE = 0x20000	/* ARG_MAX */
+	};
+	if (len > MAX_ARGS_SIZE) {
+		error_msg("strings of total size %u rejected", len);
+		return -1;
+	}
+
 	/* A buffer for strings. */
-	char *args = calloc(1, len + 1);
+	char *args = malloc(len + 1);
 	if (!args) {
-		perror_msg("calloc");
+		perror_msg("malloc");
 		return -1;
 	}
 
@@ -156,16 +164,15 @@ recv_strings_from_client(int conn, char ***argv, unsigned int len)
 		++n;
 
 	/* A buffer for pointers to strings. */
-	char **av = malloc(sizeof(char *) * (n + 1));
+	char **av = calloc(n + 1, sizeof(char *));
 	if (!av) {
-		perror_msg("malloc");
+		perror_msg("calloc");
 		goto err;
 	}
 
 	n = 0;
 	for (char *p = args; p < args + len; p = (char *) rawmemchr(p, '\0') + 1)
 		av[n++] = p;
-	av[n] = NULL;
 
 	*argv = av;
 
