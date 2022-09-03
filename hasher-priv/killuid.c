@@ -18,6 +18,20 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/prctl.h>
+#include <sys/resource.h>
+
+static void
+raise_rlimit_nproc(void)
+{
+	struct rlimit rlim;
+
+	if (getrlimit(RLIMIT_NPROC, &rlim))
+		perror_msg_and_die("getrlimit");
+
+	rlim.rlim_cur = rlim.rlim_max = RLIM_INFINITY;
+
+	(void) setrlimit(RLIMIT_NPROC, &rlim);
+}
 
 int
 do_killuid(void)
@@ -28,6 +42,8 @@ do_killuid(void)
 		error_msg_and_die("invalid uid: %u", change_uid1);
 	if (change_uid2 < MIN_CHANGE_UID || change_uid2 == u)
 		error_msg_and_die("invalid uid: %u", change_uid2);
+
+	raise_rlimit_nproc();
 
 	/*
 	 * Do not assume that fs.suid_dumpable == 0

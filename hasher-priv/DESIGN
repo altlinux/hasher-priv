@@ -193,6 +193,7 @@ Here is the control flow of the privileged job runner (euid=root):
     + getugid2: print change_uid2:change_gid2 pair
     + killuid
       + check for valid uids specified
+      + set RLIMIT_NPROC to RLIM_INFINITY
       + clear the dumpable flag explicitly
       + setuid to the specified uid pair
       + kill (-1, SIGKILL)
