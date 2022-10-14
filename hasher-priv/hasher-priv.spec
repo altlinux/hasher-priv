@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 2.0.4
+Version: 2.0.5
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -72,6 +72,11 @@ fi
 %doc DESIGN
 
 %changelog
+* Fri Oct 14 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0.5-alt1
+- hasher-privd(8): added an overview of the hasher-privd architecture
+  (by Arseny Maslennikov).
+- mount: allowed non-dev subdirectories to be owned by rooter.
+
 * Sat Sep 03 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0.4-alt1
 - killuid: robustify by removing the limit on the number of processes.
 
