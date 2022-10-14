@@ -16,6 +16,7 @@ struct stat;
 typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
 
 void stat_caller_ok_validator(struct stat *, const char *);
+void stat_caller_rooter_ok_validator(struct stat *, const char *);
 void stat_root_ok_validator(struct stat *, const char *);
 
 void safe_chdir(const char *, VALIDATE_FPTR);

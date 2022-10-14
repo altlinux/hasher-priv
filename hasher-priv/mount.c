@@ -166,7 +166,8 @@ xmount(struct mnt_ent *e)
 
 	int is_dev_subdir = strncmp(e->mnt_dir + 1, "dev/", 4) == 0;
 	chdiruid(e->mnt_dir + 1,
-		 is_dev_subdir ? stat_root_ok_validator : stat_caller_ok_validator);
+		 is_dev_subdir ? stat_root_ok_validator
+			       : stat_caller_rooter_ok_validator);
 
 	if (mount(e->mnt_fsname, ".", e->mnt_type, flags, options ? : ""))
 		perror_msg_and_die("mount: %s", e->mnt_dir);

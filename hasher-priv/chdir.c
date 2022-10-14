@@ -137,6 +137,30 @@ stat_caller_ok_validator(struct stat *st, const char *name)
 }
 
 /*
+ * Ensure that owner is caller_uid:change_gid1 or change_uid1:change_gid1,
+ * S_IWOTH bit is not set, and
+ * S_IWGRP bit is set only when S_ISVTX bit is also set.
+ *
+ * This function may be executed with caller privileges.
+ */
+void
+stat_caller_rooter_ok_validator(struct stat *st, const char *name)
+{
+	if (st->st_uid != caller_uid && st->st_uid != change_uid1)
+		error_msg_and_die("%s: expected owner %u or %u, found owner %u",
+				  name, caller_uid, change_uid1, st->st_uid);
+
+	if (st->st_gid != change_gid1)
+		error_msg_and_die("%s: expected group %u, found group %u",
+				  name, change_gid1, st->st_gid);
+
+	if ((st->st_mode & S_IWOTH)
+	    || ((st->st_mode & S_IWGRP) && !(st->st_mode & S_ISVTX)))
+		error_msg_and_die("%s: bad perms: %o",
+				  name, st->st_mode & 07777);
+}
+
+/*
  * Ensure that owner is root and permissions contain no
  * group or world writable bits set.
  *
