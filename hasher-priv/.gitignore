@@ -10,4 +10,5 @@ hasher-privd
 hasher-privd.8
 hasher-useradd
 hasher-useradd.8
+tmpfiles.conf
 *.[do]

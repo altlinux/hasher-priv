@@ -31,8 +31,10 @@ required by hasher utilities.
 %make_build CC="%__cc" CFLAGS="%optflags" libexecdir="%_libexecdir"
 
 %install
-%makeinstall \
-	systemd_unitdir="%{?buildroot:%{buildroot}}%_unitdir" \
+%makeinstall_std \
+	libexecdir="%_libexecdir" \
+	tmpfilesdir="%_tmpfilesdir" \
+	systemd_unitdir="%_unitdir" \
 	#
 
 %pre
@@ -68,6 +70,9 @@ fi
 %_sbindir/hasher-privd
 %_unitdir/hasher-privd.service
 %_initdir/hasher-privd
+# socketdir
+%_tmpfilesdir/%name.conf
+%attr(710,root,hashman) %dir /run/%name/
 
 %doc DESIGN
 

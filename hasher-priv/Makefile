@@ -12,7 +12,8 @@ VERSION = $(shell sed '/^Version: */!d;s///;q' hasher-priv.spec)
 HELPERS = getconf.sh getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-privd.8 hasher-useradd.8
-TARGETS = $(PROJECT) hasher-privd hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
+TARGETS = $(PROJECT) hasher-privd hasher-useradd tmpfiles.conf \
+	  $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
 
 have-cc-function = $(shell echo 'extern void $(1)(void); int main () { $(1)(); return 0; }' |$(CC) -o /dev/null -xc - > /dev/null 2>&1 && echo "-D$(2)")
 
@@ -21,6 +22,7 @@ initdir=$(sysconfdir)/rc.d/init.d
 systemd_unitdir=/lib/systemd/system
 libexecdir = /usr/lib
 sbindir = /usr/sbin
+tmpfilesdir = /lib/tmpfiles.d
 mandir = /usr/share/man
 man5dir = $(mandir)/man5
 man8dir = $(mandir)/man8
@@ -151,6 +153,9 @@ install: all
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
 	$(INSTALL) -p -m755 hasher-privd $(DESTDIR)$(sbindir)/
 	$(INSTALL) -p -m755 hasher-useradd $(DESTDIR)$(sbindir)/
+	$(MKDIR_P) -m710 $(DESTDIR)$(socketdir)
+	$(MKDIR_P) -m755 $(DESTDIR)$(tmpfilesdir)
+	$(INSTALL) -p -m644 tmpfiles.conf $(DESTDIR)$(tmpfilesdir)/$(PROJECT).conf
 	$(MKDIR_P) -m755 $(DESTDIR)$(man5dir)
 	$(INSTALL) -p -m644 $(MAN5PAGES) $(DESTDIR)$(man5dir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(man8dir)
@@ -161,6 +166,9 @@ clean:
 
 indent:
 	indent *.h *.c
+
+%.conf: %.conf.in Makefile
+	sed -e 's|@socketdir@|$(socketdir)|g' < $< > $@-t && mv $@-t $@
 
 %1.sh: %.sh.in Makefile
 	sed -e 's|@N@|1|g' -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
