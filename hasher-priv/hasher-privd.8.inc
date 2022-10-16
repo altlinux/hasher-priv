@@ -86,15 +86,6 @@ output with description strings denoting their role and credentials.
 Since 2.0.2, before a program is executed as part of a chrootuid job,
 the process it will run in calls prctl(PR_SET_NO_NEW_PRIVS, 1).
 This may or may not impact unaware workloads.
-As of 2.0, the hasher client has special logic to ask
-.BR systemd (1)
-to put itself in a transient scope to avoid possible races, which may happen
-if an unrelated program puts foreign pids in a managed unit's cgroup.
-In later versions this chore might be delegated to client callers, notably
-.BR hsh (1)
-and other
-.BR "hsh-*" (1)
-utilities.
 
 [FILES]
 .TP
