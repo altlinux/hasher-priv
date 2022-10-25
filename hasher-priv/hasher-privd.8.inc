@@ -87,6 +87,23 @@ Since 2.0.2, before a program is executed as part of a chrootuid job,
 the process it will run in calls prctl(PR_SET_NO_NEW_PRIVS, 1).
 This may or may not impact unaware workloads.
 
+Since 2.0,
+.BR hasher-privd (8)
+replaces a setuid-root program, which had performed the same duties.
+All subprocesses of that program naturally were part of the client's cgroup.
+The job-running child processes of
+.BR hasher-privd (8)
+are part of the server's cgroup and have to be put in the cgroup of the client
+manually.
+On systems employing
+.BR systemd (1)
+this may lead to races if the client is in a managed unit's cgroup.
+The client (or its caller) has to ask
+.BR systemd (1)
+to put itself in a transient scope to avoid possible races, if necessary.
+The hasher utilities that make use of the chrootuid operation take care
+of this automatically.
+
 [FILES]
 .TP
 .I /etc/hasher\-priv/daemon.conf
