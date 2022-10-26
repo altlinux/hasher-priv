@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 2.0.6
+Version: 2.0.7
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -77,6 +77,10 @@ fi
 %doc DESIGN
 
 %changelog
+* Wed Oct 26 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0.7-alt1
+- hasher-privd(8): added a note on cgroup handling
+  (by Arseny Maslennikov).
+
 * Fri Oct 21 2022 Dmitry V. Levin <ldv@altlinux.org> 2.0.6-alt1
 - Packaged socket directory.
 - chrootuid.sh: moved systemd-run invocation to the hasher project
