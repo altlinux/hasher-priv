@@ -23,17 +23,15 @@ fd_send(int ctl, int *fds, unsigned int n_fds,
 	const char *data, size_t data_len)
 {
 	const size_t clen = sizeof(fds[0]) * n_fds;
-	union {
-		char buf[CMSG_SPACE(clen)];
-		struct cmsghdr align;
-	} u;
+	char buf[CMSG_SPACE(clen)]
+		__attribute__((__aligned__(__alignof__(struct cmsghdr))));
 
 	if (!data_len) {
 		/*
 		 * We have to send at least a byte of regular data
 		 * in order to send some ancillary data.
 		 */
-		data = u.buf;
+		data = buf;
 		data_len = 1;
 	}
 
@@ -45,8 +43,8 @@ fd_send(int ctl, int *fds, unsigned int n_fds,
 	struct msghdr msg = {
 		.msg_iov = &iov,
 		.msg_iovlen = 1,
-		.msg_control = u.buf,
-		.msg_controllen = sizeof(u.buf)
+		.msg_control = buf,
+		.msg_controllen = sizeof(buf)
 	};
 
 	struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
@@ -74,10 +72,8 @@ int
 fd_recv(int ctl, int *fds, unsigned int n_fds, char *data, size_t data_len)
 {
 	const size_t clen = sizeof(fds[0]) * n_fds;
-	union {
-		char buf[CMSG_SPACE(clen)];
-		struct cmsghdr align;
-	} u;
+	char buf[CMSG_SPACE(clen)]
+		__attribute__((__aligned__(__alignof__(struct cmsghdr))));
 
 	char dummy;
 	if (!data_len) {
@@ -97,8 +93,8 @@ fd_recv(int ctl, int *fds, unsigned int n_fds, char *data, size_t data_len)
 	struct msghdr msg = {
 		.msg_iov = &iov,
 		.msg_iovlen = 1,
-		.msg_control = u.buf,
-		.msg_controllen = sizeof(u.buf)
+		.msg_control = buf,
+		.msg_controllen = sizeof(buf)
 	};
 
 	ssize_t rc = recvmsg_retry(ctl, &msg, 0);
