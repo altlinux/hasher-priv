@@ -56,7 +56,7 @@ CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 	$(LFS_CFLAGS) -DPROJECT_VERSION=\"$(VERSION)\" \
 	-DSOCKETDIR=\"$(socketdir)\" -DPROJECT=\"$(PROJECT)\"
 CFLAGS = -pipe -O2
-override CFLAGS += $(WARNINGS)
+override CFLAGS := $(WARNINGS) $(CFLAGS)
 LDLIBS =
 server_LDLIBS = -lsetproctitle
 
