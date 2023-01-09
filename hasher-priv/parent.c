@@ -53,7 +53,19 @@ xselect(int nfds, fd_set *read_fds, fd_set *write_fds,
 static void
 sigwinch_handler(int signo ATTRIBUTE_UNUSED)
 {
-	++sigwinch_arrived;
+	sigwinch_arrived = 1;
+}
+
+static void
+setup_sigwinch_handler(void)
+{
+	block_signal_handler(SIGWINCH, SIG_BLOCK);
+	struct sigaction act = {
+		.sa_handler = sigwinch_handler,
+		.sa_flags = SA_RESTART
+	};
+	if (sigaction(SIGWINCH, &act, 0))
+		perror_msg_and_die("sigaction");
 }
 
 static int child_rc;
@@ -371,7 +383,6 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 	      int a_ctl_fd)
 {
 	io_std_t io;
-	struct sigaction act;
 
 	pty_fd = a_pty_fd;
 	ctl_fd = a_ctl_fd;
@@ -399,14 +410,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 
 	/* redirect standard descriptors, init tty if necessary */
 	if (init_tty() && tty_copy_winsize(STDIN_FILENO, pty_fd) == 0)
-	{
-		block_signal_handler(SIGWINCH, SIG_BLOCK);
-		act.sa_handler = sigwinch_handler;
-		sigemptyset(&act.sa_mask);
-		act.sa_flags = SA_RESTART;
-		if (sigaction(SIGWINCH, &act, 0))
-			perror_msg_and_die("sigaction");
-	}
+		setup_sigwinch_handler();
 
 	while (work_limits_ok(total_bytes_read, total_bytes_written))
 		if (handle_io(io) != EXIT_SUCCESS)
