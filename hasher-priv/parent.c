@@ -89,6 +89,17 @@ sigchld_handler(int signo ATTRIBUTE_UNUSED)
 }
 
 static void
+setup_sigchld_handler(void)
+{
+	struct sigaction act = {
+		.sa_handler = sigchld_handler,
+		.sa_flags = (int) (SA_NOCLDSTOP | SA_RESETHAND)
+	};
+	if (sigaction(SIGCHLD, &act, 0))
+		perror_msg_and_die("sigaction");
+}
+
+static void
 forget_child(void)
 {
 	if (child_pid)
@@ -367,11 +378,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 
 	child_pid = a_child_pid;
 
-	act.sa_handler = sigchld_handler;
-	sigemptyset(&act.sa_mask);
-	act.sa_flags = (int) (SA_NOCLDSTOP | SA_RESETHAND);
-	if (sigaction(SIGCHLD, &act, 0))
-		perror_msg_and_die("sigaction");
+	setup_sigchld_handler();
 
 	signal(SIGPIPE, SIG_IGN);
 
