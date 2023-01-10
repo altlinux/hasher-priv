@@ -1,7 +1,7 @@
 /*
  * The command line parser for the hasher-priv client program.
  *
- * Copyright (C) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>
+ * Copyright (C) 2003-2023  Dmitry V. Levin <ldv@altlinux.org>
  * All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -72,7 +72,7 @@ static void
 print_version(void)
 {
 	printf("hasher-priv version %s\n"
-	       "Copyright (c) 2003-2022  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "Copyright (c) 2003-2023  Dmitry V. Levin <ldv@altlinux.org>\n"
 	       "Copyright (C) 2019  Alexey Gladkov <legion@altlinux.org>\n"
 	       "Copyright (C) 2022  Arseny Maslennikov <arseny@altlinux.org>\n"
 	       "Copyright (C) 2022  Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>\n"
