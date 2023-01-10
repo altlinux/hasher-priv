@@ -58,7 +58,7 @@ CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 CFLAGS = -pipe -O2
 override CFLAGS := $(WARNINGS) $(CFLAGS)
 LDLIBS =
-server_LDLIBS = -lsetproctitle
+server_LDLIBS = -lsetproctitle -lrt
 
 SRC_client =		\
 	cmdline.c	\

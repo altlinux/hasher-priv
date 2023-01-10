@@ -37,6 +37,7 @@
 
 static volatile pid_t child_pid;
 
+static volatile sig_atomic_t sigalrm_arrived;
 static volatile sig_atomic_t sigwinch_arrived;
 
 static int
@@ -48,6 +49,31 @@ xselect(int nfds, fd_set *read_fds, fd_set *write_fds,
 
 	return pselect(nfds, read_fds, write_fds, NULL,
 		       (timeout ? &tmout : NULL), &sigmask);
+}
+
+static void
+sigalrm_handler(int signo ATTRIBUTE_UNUSED)
+{
+	sigalrm_arrived = 1;
+}
+
+static void
+setup_timer(void)
+{
+	block_signal_handler(SIGALRM, SIG_BLOCK);
+	struct sigaction act = { .sa_handler = sigalrm_handler };
+	if (sigaction(SIGALRM, &act, 0))
+		perror_msg_and_die("sigaction");
+
+	timer_t timer_id;
+	if (timer_create(CLOCK_MONOTONIC, NULL, &timer_id))
+		perror_msg_and_die("timer_create");
+
+	const struct itimerspec its = {
+		.it_value = { .tv_sec = (time_t) wlimit.time_elapsed }
+	};
+	if (timer_settime(timer_id, 0, &its, NULL))
+		perror_msg_and_die("timer_settime");
 }
 
 static void
@@ -147,6 +173,10 @@ wait_child(void)
 static int
 work_limits_ok(unsigned long bytes_read, unsigned long bytes_written)
 {
+	if (sigalrm_arrived)
+		limit_exceeded("time elapsed limit (%lu seconds) exceeded",
+			       wlimit.time_elapsed);
+
 	if (wlimit.bytes_read
 	    && bytes_read >= (unsigned long) wlimit.bytes_read)
 		limit_exceeded("bytes read limit (%lu bytes) exceeded",
@@ -156,24 +186,6 @@ work_limits_ok(unsigned long bytes_read, unsigned long bytes_written)
 	    && bytes_written >= (unsigned long) wlimit.bytes_written)
 		limit_exceeded("bytes written limit (%lu bytes) exceeded",
 			       wlimit.bytes_written);
-
-	if (wlimit.time_elapsed)
-	{
-		static time_t t_start;
-
-		if (!t_start)
-			time(&t_start);
-		else
-		{
-			time_t  t_now;
-
-			time(&t_now);
-			if (t_start + (time_t) wlimit.time_elapsed <= t_now)
-				limit_exceeded
-					("time elapsed limit (%lu seconds) exceeded",
-					 wlimit.time_elapsed);
-		}
-	}
 
 	return 1;
 }
@@ -411,6 +423,9 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 	/* redirect standard descriptors, init tty if necessary */
 	if (init_tty() && tty_copy_winsize(STDIN_FILENO, pty_fd) == 0)
 		setup_sigwinch_handler();
+
+	if (wlimit.time_elapsed)
+		setup_timer();
 
 	while (work_limits_ok(total_bytes_read, total_bytes_written))
 		if (handle_io(io) != EXIT_SUCCESS)
