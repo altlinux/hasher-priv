@@ -160,9 +160,7 @@ useradd $useradd_system_option -M -d /dev/null -s /dev/null \
 	Fatal "error creating satellite user $user2"
 
 # Add caller to hashman and satellite groups.
-gpasswd -a "$caller" "$(id -gn "$user1")" &&
-gpasswd -a "$caller" "$(id -gn "$user2")" &&
-gpasswd -a "$caller" hashman ||
+usermod -aG "$(id -gn "$user1"),$(id -gn "$user2"),hashman" "$caller" ||
 	Fatal "error updating groups for user $caller"
 
 # Create config.
