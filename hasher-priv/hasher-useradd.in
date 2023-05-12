@@ -173,3 +173,11 @@ user2=$user2
 __EOF__
 
 chgrp -- "$(id -g "$caller")" "$config"
+
+# If we have successfully added the satellite users, enable the hasher-privd
+# service. If the main daemon was socket-activated instead, that would
+# translate to "least surprise" better, but we have to support service managers
+# which cannot socket-activate.
+Info 'enabling and starting hasher-privd'
+service hasher-privd enable
+service hasher-privd start
