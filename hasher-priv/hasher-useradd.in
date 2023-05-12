@@ -69,7 +69,7 @@ opt_check_number()
 	printf %s "$2"
 }
 
-TEMP=`getopt -n $PROG -o h,V -l names:,number:,help,version -- "$@"` ||
+TEMP=`getopt -n $PROG -o r,h,V -l names:,number:,system,help,version -- "$@"` ||
 	show_usage
 eval set -- "$TEMP"
 
