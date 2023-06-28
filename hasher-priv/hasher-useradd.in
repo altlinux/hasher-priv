@@ -69,6 +69,10 @@ opt_check_number()
 	printf %s "$2"
 }
 
+svrc_booted() {
+	[ -n "$(find /var/lock/subsys -maxdepth 0 -type d -not -empty 2>/dev/null)" ]
+}
+
 TEMP=`getopt -n $PROG -o r,h,V -l names:,number:,system,help,version -- "$@"` ||
 	show_usage
 eval set -- "$TEMP"
@@ -176,6 +180,9 @@ chgrp -- "$(id -g "$caller")" "$config"
 # service. If the main daemon was socket-activated instead, that would
 # translate to "least surprise" better, but we have to support service managers
 # which cannot socket-activate.
-Info 'enabling and starting hasher-privd'
-service hasher-privd enable
-service hasher-privd start
+Info 'enabling hasher-privd'
+chkconfig hasher-privd on
+if [ -d /run/systemd/system ] || svrc_booted; then
+	Info 'starting hasher-privd'
+	service hasher-privd start
+fi
