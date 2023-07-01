@@ -43,7 +43,7 @@ Valid options are:
   -V, --version         print program version and exit;
   -h, --help            show this text and exit.
 
-By default, satellite user names will be choosen based on <user>.
+By default, satellite user names will be chosen based on <user>.
 EOF
 	exit
 }
