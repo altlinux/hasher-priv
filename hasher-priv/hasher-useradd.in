@@ -73,10 +73,11 @@ svrc_booted() {
 	[ -n "$(find /var/lock/subsys -maxdepth 0 -type d -not -empty 2>/dev/null)" ]
 }
 
-TEMP=`getopt -n $PROG -o r,h,V -l names:,number:,system,help,version -- "$@"` ||
+TEMP=`getopt -n $PROG -o f,r,h,V -l names:,number:,force,system,help,version -- "$@"` ||
 	show_usage
 eval set -- "$TEMP"
 
+force=
 names=
 number=
 system=
@@ -89,6 +90,8 @@ while :; do
 			shift
 			;;
 		-r|--system) system=1
+			;;
+		-f|--force) force=1
 			;;
 		-h|--help) show_help
 			;;
@@ -122,7 +125,7 @@ fi
 
 caller_id="$(id "$caller")"
 caller_uid="$(printf %s "$caller_id" |sed -ne 's/^uid=\([0-9]\+\)(.*/\1/p')"
-[ "$caller_uid" -gt 0 ] ||
+[ -n "$force" ] || [ "$caller_uid" -gt 0 ] ||
 	Fatal "user \""$caller"\" is too privileged"
 
 ! id "$user1" >/dev/null 2>&1 ||
