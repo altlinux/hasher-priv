@@ -129,7 +129,7 @@ start_session(struct hadaemon *d, int conn, unsigned num)
 		return -1;
 	}
 
-	if (gid < MIN_CHANGE_UID || gid == getgid()) {
+	if (gid < MIN_CHANGE_GID || gid == getgid()) {
 		error_msg("invalid gid: %u", gid);
 		return -1;
 	}
