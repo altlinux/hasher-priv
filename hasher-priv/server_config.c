@@ -63,6 +63,10 @@ set_server_name_value(const char *name, const char *value, const char *fname)
 	} else if (!strcasecmp("access_group", name)) {
 		free(server_access_group);
 		server_access_group = xstrdup(value);
+	} else if (!strcasecmp("min_uid", name)) {
+		min_uid = opt_str2int(name, value, fname);
+	} else if (!strcasecmp("min_gid", name)) {
+		min_gid = opt_str2int(name, value, fname);
 	} else {
 		opt_bad_name(name, fname);
 	}

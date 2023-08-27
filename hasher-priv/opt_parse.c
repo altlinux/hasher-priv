@@ -58,3 +58,18 @@ opt_str2bool(const char *name, const char *value, const char *fname)
 			  fname, value, name);
 	return 0;
 }
+
+int
+opt_str2int(const char *name, const char *value, const char *fname)
+{
+	if (!*value)
+		opt_bad_value(name, value, fname);
+
+	errno = 0;
+	char *p = 0;
+	long long n = strtoll(value, &p, 10);
+	if (!p || *p || n < INT_MIN || n > INT_MAX || (n == LLONG_MAX && errno == ERANGE))
+		opt_bad_value(name, value, fname);
+
+	return (int) n;
+}

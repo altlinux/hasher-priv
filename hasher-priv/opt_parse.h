@@ -22,5 +22,7 @@ unsigned long opt_str2ul(const char *name, const char *value, const char *fname)
 	ATTRIBUTE_NONNULL((1, 2, 3));
 int opt_str2bool(const char *name, const char *value, const char *fname)
 	ATTRIBUTE_NONNULL((1, 2, 3));
+int opt_str2int(const char *name, const char *value, const char *fname)
+	ATTRIBUTE_NONNULL((1, 2, 3));
 
 #endif /* !HASHER_OPT_PARSE_H */
