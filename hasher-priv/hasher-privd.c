@@ -124,14 +124,18 @@ start_session(struct hadaemon *d, int conn, unsigned num)
 	if (get_peercred(conn, NULL, &uid, &gid) < 0)
 		return -1;
 
-	if (uid < MIN_CHANGE_UID || uid == getuid()) {
-		error_msg("invalid uid: %u", uid);
-		return -1;
+	if (min_uid >= 0) {
+		if (!valid_uid(uid) || uid == getuid()) {
+			error_msg("invalid uid: %u", uid);
+			return -1;
+		}
 	}
 
-	if (gid < MIN_CHANGE_GID || gid == getgid()) {
-		error_msg("invalid gid: %u", gid);
-		return -1;
+	if (min_gid >= 0) {
+		if (!valid_gid(gid) || gid == getgid()) {
+			error_msg("invalid gid: %u", gid);
+			return -1;
+		}
 	}
 
 	struct session **sp = &pool;

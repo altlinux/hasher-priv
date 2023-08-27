@@ -10,6 +10,7 @@
 /* Code in this file may be executed with root privileges. */
 
 #include "caller_config.h"
+#include "server_config.h"
 #include "error_prints.h"
 #include "executors.h"
 #include "ipc.h"
@@ -38,9 +39,9 @@ do_killuid(void)
 {
 	uid_t u = getuid();
 
-	if (change_uid1 < MIN_CHANGE_UID || change_uid1 == u)
+	if (!valid_uid(change_uid1) || change_uid1 == u)
 		error_msg_and_die("invalid uid: %u", change_uid1);
-	if (change_uid2 < MIN_CHANGE_UID || change_uid2 == u)
+	if (!valid_uid(change_uid2) || change_uid2 == u)
 		error_msg_and_die("invalid uid: %u", change_uid2);
 
 	raise_rlimit_nproc();

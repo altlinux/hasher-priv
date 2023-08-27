@@ -15,6 +15,7 @@
 #include "chdir.h"
 #include "error_prints.h"
 #include "file_config.h"
+#include "server_config.h"
 #include "opt_parse.h"
 #include "x11.h"
 #include "xmalloc.h"
@@ -385,12 +386,12 @@ check_user(const char *user_name, uid_t * user_uid, gid_t * user_gid,
 		error_msg_and_die("%s: %s: name mismatch",
 				  name, user_name);
 
-	if (pw->pw_uid < MIN_CHANGE_UID)
+	if (!valid_uid(pw->pw_uid))
 		error_msg_and_die("%s: %s: invalid uid: %u",
 				  name, user_name, pw->pw_uid);
 	*user_uid = pw->pw_uid;
 
-	if (pw->pw_gid < MIN_CHANGE_GID)
+	if (!valid_gid(pw->pw_gid))
 		error_msg_and_die("%s: %s: invalid gid: %u",
 				  name, user_name, pw->pw_gid);
 	*user_gid = pw->pw_gid;

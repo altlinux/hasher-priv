@@ -19,4 +19,17 @@ extern char *server_loglevel;
 extern char *server_pidfile;
 extern gid_t server_gid;
 
+extern int min_uid;
+extern int min_gid;
+
+inline int valid_uid(uid_t uid)
+{
+	return (min_uid < 0 || (uid_t) min_uid <= uid);
+}
+
+inline int valid_gid(gid_t gid)
+{
+	return (min_gid < 0 || (gid_t) min_gid <= gid);
+}
+
 #endif /* !HASHER_SERVER_CONFIG_H */

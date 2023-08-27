@@ -22,9 +22,14 @@
 #include <stdlib.h>
 #include <grp.h>
 
+# define MIN_CHANGE_UID	34
+# define MIN_CHANGE_GID	34
+
 char *server_loglevel;
 char *server_pidfile;
 gid_t server_gid;
+int min_uid = MIN_CHANGE_UID;
+int min_gid = MIN_CHANGE_GID;
 unsigned long server_session_timeout;
 
 static char *server_access_group;
