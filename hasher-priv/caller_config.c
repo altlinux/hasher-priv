@@ -40,6 +40,7 @@ uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int change_nice = 8;
+size_t  change_nproc = 0;
 int     makedev_console;
 int     use_pty;
 size_t  x11_data_len;
@@ -137,6 +138,22 @@ str2nice(const char *name, const char *value, const char *filename)
 		opt_bad_value(name, value, filename);
 
 	return (int) n;
+}
+
+static size_t
+str2nproc(const char *name, const char *value, const char *filename)
+{
+	char   *p = 0;
+	long n;
+
+	if (!*value)
+		opt_bad_value(name, value, filename);
+
+	n = strtol(value, &p, 10);
+	if (!p || *p || n < 1)
+		opt_bad_value(name, value, filename);
+
+	return (size_t) n;
 }
 
 static  rlim_t
@@ -338,6 +355,8 @@ set_caller_name_value(const char *name, const char *value, const char *filename)
 		change_umask = str2umask(name, value, filename);
 	else if (!strcasecmp("nice", name))
 		change_nice = str2nice(name, value, filename);
+	else if (!strcasecmp("nproc", name))
+		change_nproc = str2nproc(name, value, filename);
 	else if (!strcasecmp("allowed_devices", name))
 		parse_str_list(value, &allowed_devices);
 	else if (!strcasecmp("allowed_mountpoints", name))

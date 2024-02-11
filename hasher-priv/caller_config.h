@@ -48,6 +48,7 @@ extern uid_t change_uid1, change_uid2;
 extern gid_t change_gid1, change_gid2;
 extern mode_t change_umask;
 extern int change_nice;
+extern size_t change_nproc;
 
 extern str_list_t allowed_devices;
 extern str_list_t allowed_mountpoints;

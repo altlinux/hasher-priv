@@ -89,6 +89,7 @@ Here is the control flow of the privileged session server (euid=root):
       prefix
       umask
       nice
+      nproc
       allow_ttydev
       allowed_devices
       allowed_mountpoints
@@ -283,6 +284,7 @@ Here is the control flow of the privileged job runner (euid=root):
           + redirect stdin if required, either to an empty pipe or to the pty
           + redirect stdout and stderr either to the pipe or to the pty
           + set nice
+          + reduce CPU affinity to nproc randomly shuffled bits
           + if X11 forwarding is requested,
             + add an X11 auth entry using xauth utility
             + create and bind a unix socket for X11 forwarding

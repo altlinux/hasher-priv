@@ -50,6 +50,14 @@ should not exceed OS limitation (19).
 
 Default: 8
 .TP
+.B nproc
+Limit the number of available CPUs to the specified count. This is
+achieved by reducing the CPU affinity mask to a randomly shuffled set
+of nproc bits. The value should be greater or equal to 1. If the value
+exceeds the actual CPU count, it will not be applied.
+
+Default: (none)
+.TP
 .BR rlimit_hard_cpu ", " rlimit_soft_cpu
 Per-process CPU limit, in seconds.
 
